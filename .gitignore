@@ -1,0 +1,11 @@
+logs
+target
+/.metals
+/.idea
+/.idea_modules
+/.classpath
+/.project
+/.settings
+/.bloop
+/RUNNING_PID
+/public
