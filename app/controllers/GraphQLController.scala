@@ -1,23 +1,30 @@
 package controllers
 
+import app.{AppContext, DBSchema}
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import sangria.parser._
 import sangria.ast.Document
 import sangria.marshalling.playJson._
 import sangria.execution._
 import sangria.renderer.SchemaRenderer
-import graphql._
-import schema.UserRepo
+import app.graphql._
 
 @Singleton
 class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-  implicit val ec: ExecutionContext = ExecutionContext.global
+  private val dao = DBSchema.createDatabase
 
-  def schema: Action[AnyContent] = Action { Ok(Schema.render) }
+  private val renderedSchema =
+    Seq(Schema())
+      .map(_.toAst)
+      .reduce(_+_)
+      .renderPretty
+
+  val schema: Action[AnyContent] = Action { Ok(renderedSchema) }
 
   def graphql: Action[JsValue] = Action.async(parse.json) { request ⇒
     println("New GraphQL query: " + request.body)
@@ -41,7 +48,16 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
   }
 
   def executeGraphQLQuery(query: Document, op: Option[String], vars: JsObject): Future[Result] =
-    Executor.execute(Schema(), query, new UserRepo, operationName = op, variables = vars)
+    Executor.execute(
+      schema = Schema(),
+      queryAst = query,
+      userContext = AppContext(dao),
+      operationName = op,
+      variables = vars
+//      deferredResolver = GraphQLSchema.Resolver,
+//      exceptionHandler = GraphQLSchema.ErrorHandler,
+//      middleware = AuthMiddleware :: Nil
+    )
       .map(Ok(_))
       .recover {
         case error: QueryAnalysisError ⇒ BadRequest(error.resolveError)

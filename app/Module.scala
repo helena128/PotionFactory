@@ -16,14 +16,5 @@ import scala.reflect.io.Directory
  * configuration file.
  */
 class Module extends AbstractModule {
-  override def configure() = {
-    renderSchemaToFile()
-  }
-
-  private def renderSchemaToFile(): Unit = {
-    val schemaFile = new File("graphql/schema.graphql")
-    Option(schemaFile.getParent).map(new File(_).mkdirs())
-    schemaFile.createNewFile()
-    new FileWriter(schemaFile).write(graphql.Schema.render)
-  }
+  override def configure() = {}
 }

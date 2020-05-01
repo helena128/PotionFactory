@@ -1,0 +1,109 @@
+"Entity that can be identified with Integer"
+interface IdentifiableWithInt {
+  id: Int!
+}
+
+"Entity that can be identified with String"
+interface IdentifiableWithString {
+  id: String!
+}
+
+type Ingredient implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  addedAt: ZonedDateTime!
+  description: String!
+  count: Int!
+}
+
+type IngredientRequest implements IdentifiableWithInt {
+  id: Int!
+  ingredients: [Ingredient!]!
+}
+
+type Knowledge implements IdentifiableWithInt {
+  id: Int!
+  kind: KnowledgeKind!
+  name: String!
+  addedAt: ZonedDateTime!
+  content: String!
+}
+
+enum KnowledgeKind {
+  Fable
+  Myth
+  Book
+  Gossip
+}
+
+"Schema Mutations"
+type Mutation {
+  createOrder(product: Int!, orderedBy: String!): Order!
+  requestIngredient(ingredients: [Int!]!): IngredientRequest!
+  makeReport(products: [Int!]!): ProductTransfer!
+}
+
+type Order implements IdentifiableWithInt {
+  id: Int!
+  orderedBy: String!
+  product: Product!
+}
+
+type Product implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  description: String!
+  count: Int!
+  basePrice: Float!
+  recipe: Recipe!
+}
+
+type ProductTransfer implements IdentifiableWithInt {
+  id: Int!
+  status: ProductTransferStatus!
+  products: [Product!]!
+}
+
+enum ProductTransferStatus {
+  Stored
+  Transferred
+  Produced
+}
+
+"Schema Queries"
+type Query {
+  user(id: String!): User
+  searchKnowledge(string: String!, limit: Int!): [Knowledge!]!
+  ingredient(id: Int!): Ingredient!
+  allIngredients: [Ingredient!]!
+  product(id: Int!): Product!
+  allProducts: [Product!]!
+}
+
+type Recipe implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  description: String!
+  ingredients: [Ingredient!]!
+}
+
+"User account and info"
+type User implements IdentifiableWithString {
+  id: String!
+  password: String!
+  name: String!
+  email: String!
+  phone: String
+  address: String
+  role: UserRole!
+}
+
+enum UserRole {
+  WarehouseManager
+  WorkshopManager
+  Client
+  Fairy
+  Admin
+}
+
+scalar ZonedDateTime

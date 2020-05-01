@@ -1,5 +1,6 @@
 logs
-target
+/target/*
+!/target/schema.graphql
 /.metals
 /.idea
 /.idea_modules
@@ -9,3 +10,4 @@ target
 /.bloop
 /RUNNING_PID
 /public
+
