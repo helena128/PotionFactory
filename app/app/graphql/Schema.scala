@@ -8,9 +8,12 @@ import sangria.execution.deferred._
 import sangria.macros.derive._
 import app.schema.Models._
 import org.joda.time.DateTime
-import sangria.ast.StringValue
+import sangria.ast.{ListValue, StringValue}
+import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
+import sangria.marshalling.queryAst._
 import sangria.validation.Violation
 
+import scala.collection.immutable.ListMap
 import scala.util.Try
 
 object Schema {
@@ -86,9 +89,22 @@ object Schema {
     ReplaceField("ingredients", Field("ingredients", ListType(IngredientType),
       resolve = c => ingredientFetcher.deferSeq(c.value.ingredients))))
 
+//  implicit val TagsType = ScalarAlias[Tag, String](
+//    ScalarType(ListType(StringType)),
+//    _,
+//    _)
+//  implicit val ProductTagType = ScalarAlias[ProductTag, String](StringType,
+//    _.toString,
+//    c => Right(c.asInstanceOf[ProductTag]))
+//  implicit val ProductTagsType = ListType(ProductTagType)
+//  implicit val whatType = StringType
+//    ListType(StringType)
+
   implicit val ProductType = deriveObjectType[AppContext, Product](
     Interfaces(IdentifiableWithIntType),
     ObjectTypeName("Product"),
+    ReplaceField("tags", Field("tags", ListType(StringType),
+      resolve = c => c.value.tags.asInstanceOf[List[String]])),
     ReplaceField("recipe", Field("recipe", RecipeType,
       resolve = c => recipeFetcher.defer(c.value.recipe))))
 
@@ -107,6 +123,8 @@ object Schema {
     ReplaceField("products", Field("products", ListType(ProductType),
       resolve = c => productFetcher.deferSeq(c.value.products))))
 
+//  val userFetcher: Fetcher[AppContext, User, User, Int] =
+//    Fetcher((ctx: AppContext, ids: Seq[Int]) => ctx.dao.getUsers(ids))
   val recipeFetcher: Fetcher[AppContext, Recipe, Recipe, Int] =
     Fetcher((ctx: AppContext, ids: Seq[Int]) => ctx.dao.getRecipes(ids))
   val ingredientFetcher: Fetcher[AppContext, Ingredient, Ingredient, Int] =
@@ -119,6 +137,7 @@ object Schema {
   val IdInt = Argument("id", IntType)
   val SearchString = Argument("string", StringType)
   val SearchLimit = Argument("limit", IntType)
+  val SearchLookaround = Argument("lookaround", IntType)
 
   //  def userById(id: String) = Users.filter(_.id == id).take(1)
 //
@@ -135,8 +154,8 @@ object Schema {
     fields[AppContext, Unit](
       Field("user", OptionType(UserType), arguments = IdStr :: Nil, resolve = c => c.ctx.dao.getUser(c.arg(IdStr))),
       Field("searchKnowledge", ListType(KnowledgeType),
-        arguments = SearchString :: SearchLimit :: Nil,
-        resolve = c => c.ctx.dao.searchKnowledge(c.arg(SearchString), c.arg(SearchLimit))),
+        arguments = SearchString :: SearchLimit :: SearchLookaround :: Nil,
+        resolve = c => c.ctx.dao.searchKnowledge(c.arg(SearchString), c.arg(SearchLimit), c.arg(SearchLookaround))),
       Field("ingredient", IngredientType,
         arguments = IdInt :: Nil,
         resolve = c => ingredientFetcher.defer(c.arg(IdInt))),
@@ -144,7 +163,7 @@ object Schema {
         resolve = c => c.ctx.dao.getAllIngredients),
       Field("product", ProductType,
         arguments = IdInt :: Nil,
-        resolve = c => productFetcher.defer(c.arg(IdInt))),
+        resolve = c => DeferredValue(productFetcher.defer(c.arg(IdInt)))),
       Field("allProducts", ListType(ProductType),
         resolve = c => c.ctx.dao.getAllProducts),
     ))
@@ -156,8 +175,36 @@ object Schema {
   val Phone = Argument("phone", OptionInputType(StringType))
   val Address = Argument("address", OptionInputType(StringType))
 
-  val AProduct = Argument("product", IntType)
-  val AOrderedBy = Argument("orderedBy", StringType)
+
+//  val AProduct = Argument("product", IntType)
+//  val ACount = Argument("count", IntType)
+//  val AOrderedBy = Argument("orderedBy", StringType)
+
+//  implicit val _ = FromInput[Order]
+
+  implicit val _order_input = new FromInput[Order] {
+    implicit val marshaller = CoercedScalaResultMarshaller.default
+    override def fromResult(node: marshaller.Node): Order = node match { case m: ListMap[String, Any] =>
+      Order(
+        product = m("product").asInstanceOf[Int],
+        count = m("count").asInstanceOf[Int],
+        orderedBy = m("orderedBy").asInstanceOf[String])}}
+  implicit val AOrder = Argument("order",
+    deriveInputObjectType[Order](InputObjectTypeName("OrderArg"),
+      ExcludeInputFields("id")))
+
+//  implicit val ingredientListType =
+//    ScalarAlias[IngredientList, List[Int]](ListType(IntType), identity, c => Right(c.asInstanceOf[IngredientList]))
+
+  implicit val _request_input = new FromInput[IngredientRequest] {
+    implicit val marshaller = CoercedScalaResultMarshaller.default
+    override def fromResult(node: marshaller.Node): IngredientRequest = node match { case m: ListMap[String, Any] =>
+      IngredientRequest(
+        ingredients = m("ingredients").asInstanceOf[Seq[Int]].toList)}}
+  val ARequest = Argument("request",
+    deriveInputObjectType[IngredientRequest](InputObjectTypeName("RequestArg"),
+      ExcludeInputFields("id"),
+      ReplaceInputField("ingredients", InputField("ingredients", ListInputType(IntType)))))
 
   val IngredientList = Argument("ingredients", ListInputType(IntType))
 
@@ -168,28 +215,24 @@ object Schema {
 
   val MutationType = ObjectType("Mutation", "Schema Mutations",
     fields[AppContext, Unit](
-      Field("createOrder", OrderType,
-        arguments = AProduct :: AOrderedBy :: Nil,
-        resolve = c => c.ctx.dao.create(Order(
-          product = c.arg(AProduct),
-          orderedBy = c.arg(AOrderedBy)))),
+      Field("createOrder", IntType,
+        arguments = AOrder :: Nil,
+        resolve = c => c.ctx.dao.create(c.arg(AOrder))),
 //      Field("createUser", UserType,
 //        arguments = Username :: Password ::
 //          Name :: Email :: Phone :: Address :: Nil,
 //        resolve = c => c.ctx.dao.create(User(
 //          c.arg(Username), c.arg(Password),
 //          c.arg(Name), c.arg(Email), c.arg(Phone), c.arg(Address)))),
-      Field("requestIngredient", IngredientRequestType,
-        arguments = IngredientList :: Nil,
+      Field("requestIngredient", IntType,
+        arguments = ARequest :: Nil,
         resolve =
-          c => c.ctx.dao.create(
-            IngredientRequest(ingredients = c.arg(IngredientList)))),
-      Field("makeReport", ProductTransferType,
+          c => c.ctx.dao.create(c.arg(ARequest))),
+      Field("makeReport", IntType,
         arguments = AProducts :: Nil,
         resolve = c => c.ctx.dao.create(
           ProductTransfer(products = c.arg(AProducts))))),
   )
-
 
   val Resolver = DeferredResolver.fetchers(recipeFetcher, ingredientFetcher, productFetcher)
 

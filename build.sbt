@@ -7,7 +7,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 
 graphqlSchemaSnippet := "app.graphql.Schema()"
-target in graphqlSchemaGen := target.value
+target in graphqlSchemaGen := new File("./public")
 
 val reloadSchema: TaskKey[Unit] =
   taskKey[Unit]("Reload graphql schema generated from Scala sources and generate TS types from it")

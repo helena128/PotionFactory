@@ -51,10 +51,11 @@ echo A | unzip \"${BUILDAR}\" -d potion-factory
 
 echo \"[INFO] Removing release archive\"
 rm \"${BUILDAR}\"
-
-echo \"[INFO] Starting release\"
-./potion-factory/${BUILDNAME}/bin/potion-factory \\
- -Dplay.http.secret.key=${SECRET} \\
- -Dhttp.port=${PORT}
 "
+#
+#echo \"[INFO] Starting release\"
+#./potion-factory/${BUILDNAME}/bin/potion-factory \\
+# -Dplay.http.secret.key=${SECRET} \\
+# -Dhttp.port=${PORT}
+
 kill $fwdpid

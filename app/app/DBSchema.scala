@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import scala.util.Random
 import app.schema.Models._
 import com.fasterxml.jackson.databind.ObjectMapper
+import slick.jdbc.GetResult
 import slick.sql.SqlProfile.{ColumnOption => CO}
 
 import scala.concurrent.duration._
@@ -16,6 +17,7 @@ import scala.reflect.ClassTag
 //import slick.model._
 //import slick.lifted._
 import slick.jdbc.H2Profile.api._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object DBSchema {
   private def serialize(t: Serializable): Array[Byte] = {
@@ -124,13 +126,16 @@ object DBSchema {
   val Recipes = TableQuery[RecipeTable]
 
   class ProductTable(tag: Tag) extends Table[Product](tag, "PRODUCTS") {
+    private implicit val tagsMapper = objectMapper[ProductTags]
+
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
+    val tags = column[ProductTags]("TAGS")
     val description = column[String]("DESCRIPTION")
     val recipe = column[Int]("RECIPE_ID")
     val count = column[Int]("COUNT")
     val basePrice = column[Double]("BASE_PRICE")
-    val * = (id, name, description, recipe, count, basePrice).mapTo[Product]
+    val * = (id, name, tags, description, recipe, count, basePrice).mapTo[Product]
 
     val recipeFK = foreignKey("recipeIdFK", recipe, Recipes)(_.id)
   }
@@ -139,13 +144,16 @@ object DBSchema {
   class OrderTable(tag: Tag) extends Table[Order](tag, "ORDER") {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val content = column[Int]("CONTENT")
+    val count = column[Int]("COUNT")
     val orderedBy = column[String]("ORDERED_BY")
-    val * = (id, content, orderedBy).mapTo[Order]
+    val * = (id, content, count, orderedBy).mapTo[Order]
 
     val contentFK = foreignKey("contentFK", content, Products)(_.id)
     val orderedByFK = foreignKey("orderedByFK", orderedBy, Users)(_.id)
   }
   val Orders = TableQuery[OrderTable]
+
+
 
   private implicit val ProductTransferStatusMapper =
     MappedColumnType.base[ProductTransferStatus, String](_.toString, ProductTransferStatus.withName)
@@ -155,7 +163,7 @@ object DBSchema {
 
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val status = column[ProductTransferStatus]("STATUS")
-    val products = column[ProductList]("CONTENTS")(productListMapper)
+    val products = column[ProductList]("CONTENTS")
     def * = (id, status, products).mapTo[ProductTransfer]
   }
   val ProductTransfers = TableQuery[ProductTransferTable]
@@ -177,16 +185,21 @@ object DBSchema {
   private val plantainPotion = Recipe(0, "Plantain potion", "Extract of plantain", List.fill(5)(plantain.id))
   private val superOliveOil = Recipe(1, "Super Olive oil", "Olive oil enhanced with plantain", List(oliveOil.id, plantain.id))
 
-  private val plantainPotionProd = Product(0, "Plantain potion", "Extract of plantain", plantainPotion.id,
+  private val plantainPotionProd = Product(0, "Plantain potion",
+    List("health", "heals"),
+    "Extract of plantain", plantainPotion.id,
     rand.between(1000, 100000), rand.between(1, 5))
-  private val superOliveOilProd = Product(1, "Super Olive oil", "Olive oil enhanced with plantain", superOliveOil.id,
+  private val superOliveOilProd = Product(1, "Super Olive oil",
+    List("smooth skin", "health"),
+    "Olive oil enhanced with plantain", superOliveOil.id,
     rand.between(10, 100), rand.between(5, 10))
 
+  val fullSchema = Seq(Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers)
+    .map(_.schema)
+    .reduce(_ ++ _)
+
   val databaseSetup = DBIO.seq(
-      Seq(Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers)
-        .map(_.schema)
-        .reduce(_ ++ _)
-        .create,
+    fullSchema.createIfNotExists,
 
     Users forceInsertAll
       Seq[User](
@@ -228,16 +241,27 @@ object DBSchema {
 
     Products forceInsertAll Seq(plantainPotionProd, superOliveOilProd),
 
-    Orders forceInsertAll Seq((0, plantainPotionProd.id, "client")).map(Order.tupled),
+    Orders forceInsertAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
 
     ProductTransfers forceInsertAll Seq(
       (0, ProductTransferStatus.Transferred, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id))
     ).map(ProductTransfer.tupled),
   )
 
+
+  implicit val getSearchKnowledgeResult =
+    GetResult[Seq[String]](_.nextObject().asInstanceOf[Seq[String]])
+
   def createDatabase: DAO = {
     val db = Database.forConfig("h2mem")
-    Await.result(db.run(databaseSetup), 10 seconds)
+
+//    Await.result(db run sql"""SHOW TABLES""".as[String], 5 seconds).foreach(println)
+    db.run(sql"""SHOW TABLES""".as[String])
+      .andThen({case t =>
+        if (!t.get.isEmpty) fullSchema.dropIfExists
+        Await.result(db.run(databaseSetup), 10 second)
+      })
+
     new DAO(db)
   }
 }

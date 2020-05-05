@@ -85,11 +85,13 @@ object Models {
   case class Recipe(id: Int = -1, name: String, description: String, ingredients: IngredientList)
     extends Identifiable[Int]
 
-  case class Product(id: Int = -1, name: String, description: String, recipe: Int, count: Int, basePrice: Double)
+  type ProductTag = String with Serializable
+  type ProductTags = List[ProductTag] with Serializable
+  case class Product(id: Int = -1, name: String, tags: ProductTags, description: String, recipe: Int, count: Int, basePrice: Double)
     extends Identifiable[Int]
   type ProductList = List[Int] with Serializable
 
-  case class Order(id: Int = -1, product: Int, orderedBy: String)
+  case class Order(id: Int = -1, product: Int, count: Int, orderedBy: String)
     extends Identifiable[Int]
 
   object ProductTransferStatus extends Enumeration {

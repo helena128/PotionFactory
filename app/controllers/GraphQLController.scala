@@ -16,8 +16,6 @@ import app.graphql._
 
 @Singleton
 class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-  private val dao = DBSchema.createDatabase
-
   private val renderedSchema =
     Seq(Schema())
       .map(_.toAst)
@@ -51,9 +49,12 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
     Executor.execute(
       schema = Schema(),
       queryAst = query,
-      userContext = AppContext(dao),
+      userContext = AppContext(GraphQLController.dao),
+
       operationName = op,
-      variables = vars
+      variables = vars,
+      deferredResolver = Schema.Resolver
+//      exceptionHandler = TODO
 //      deferredResolver = GraphQLSchema.Resolver,
 //      exceptionHandler = GraphQLSchema.ErrorHandler,
 //      middleware = AuthMiddleware :: Nil
@@ -64,5 +65,9 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
         case error: ErrorWithResolver ⇒ InternalServerError(error.resolveError)
       }
 
+}
+
+object GraphQLController {
+  val dao = DBSchema.createDatabase
 }
 
