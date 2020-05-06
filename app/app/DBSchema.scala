@@ -1,10 +1,10 @@
 package app
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, Serializable}
-import java.time.ZonedDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 
 import scala.util.Random
-import app.schema.Models._
+import Models._
 import com.fasterxml.jackson.databind.ObjectMapper
 import slick.jdbc.GetResult
 import slick.sql.SqlProfile.{ColumnOption => CO}
@@ -18,25 +18,11 @@ import scala.reflect.ClassTag
 //import slick.lifted._
 import slick.jdbc.H2Profile.api._
 import scala.concurrent.ExecutionContext.Implicits.global
+import app.Serializer._
 
 object DBSchema {
-  private def serialize(t: Serializable): Array[Byte] = {
-    val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
-    val oos = new ObjectOutputStream(stream)
-    oos.writeObject(t)
-    oos.close()
-    stream.toByteArray
-  }
-
-  private def deserialize[T <: Serializable](b: Array[Byte]): T = {
-    val ois = new ObjectInputStream(new ByteArrayInputStream(b))
-    val value = ois.readObject()
-    ois.close()
-    value.asInstanceOf[T]
-  }
-
   private def objectMapper[A <: Serializable](implicit tag: ClassTag[A]) =
-    MappedColumnType.base[A, Array[Byte]](serialize, deserialize[A])
+    MappedColumnType.base[A, Array[Byte]](_.serialize, _.deserialize[A])
 
   //  private val json = new ObjectMapper()
 
@@ -168,6 +154,14 @@ object DBSchema {
   }
   val ProductTransfers = TableQuery[ProductTransferTable]
 
+  class SessionTable(tag: Tag) extends Table[(String, Array[Byte])](tag, "SESSIONS") {
+    val id = column[String]("ID", O.PrimaryKey)
+    val content = column[Array[Byte]]("CONTENT")
+
+    val * = (id, content)
+  }
+  val Sessions = TableQuery[SessionTable]
+
   /*
    * Populate database with stub values
    */
@@ -175,7 +169,7 @@ object DBSchema {
   import UserRole._
   import KnowledgeKind._
   private implicit def tupToUser(t: (String, String, String, String, String, String, UserRole)): User =
-    User(t._1, t._2, t._3, t._4, Option(t._5), Option(t._6), t._7)
+    User(t._1, User.hashpw(t._2), t._3, t._4, Option(t._5), Option(t._6), t._7)
 
   private val plantain = Ingredient(0, "Plantain", ZonedDateTime.now().minusDays(10), "It heals", rand.between(10, 100))
   private val oliveOil =
@@ -194,7 +188,9 @@ object DBSchema {
     "Olive oil enhanced with plantain", superOliveOil.id,
     rand.between(10, 100), rand.between(5, 10))
 
-  val fullSchema = Seq(Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers)
+  val fullSchema = Seq(
+    Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers,
+    Sessions)
     .map(_.schema)
     .reduce(_ ++ _)
 
@@ -258,8 +254,8 @@ object DBSchema {
 //    Await.result(db run sql"""SHOW TABLES""".as[String], 5 seconds).foreach(println)
     db.run(sql"""SHOW TABLES""".as[String])
       .andThen({case t =>
-        if (!t.get.isEmpty) fullSchema.dropIfExists
-        Await.result(db.run(databaseSetup), 10 second)
+        if (t.get.nonEmpty) Await.result(db.run(fullSchema.dropIfExists), 10 seconds)
+        Await.result(db.run(databaseSetup), 10 seconds)
       })
 
     new DAO(db)

@@ -1,4 +1,4 @@
-package app.schema
+package app
 
 import java.io.Serializable
 import java.time.ZonedDateTime
@@ -15,6 +15,13 @@ object Models {
 
 
   object UserRole extends Enumeration {
+    protected case class Val(override val id: Int, name: String)
+      extends super.Val(id)
+        with Identifiable[Int] {
+
+//      override def toString(): String = name
+    }
+
     def apply(s: String): UserRole = withName(s)
 
     import scala.language.implicitConversions
@@ -36,17 +43,20 @@ object Models {
                   phone: Option[String],
                   address: Option[String],
                   role: UserRole = UserRole.Client
-                 ) extends Identifiable[String] {
+                 ) extends Identifiable[String] with Serializable {
     def apply(id: String, password: String,
               name: String, email: String, phone: Option[String], address: Option[String],
               role: UserRole) =
       new User(id, User.hashpw(password), name, email, phone, address, role)
+    def checkpw(s: String): Boolean = User.checkpw(s, password)
   }
 
   object User extends {
     private val salt = BCrypt.gensalt(12)
     def hashpw(s: String): String = BCrypt.hashpw(s, salt)
+    def checkpw(s: String, pw: String): Boolean = BCrypt.checkpw(s, pw)
     val tupled = (User.apply _).tupled
+    case class Credentials(id: String, password: String)
   }
 
 
