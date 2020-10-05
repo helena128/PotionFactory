@@ -9,7 +9,7 @@ GET     /                           controllers.FrontendController.index()
 GET     /graphql/schema             controllers.GraphQLController.schema
 
 + nocsrf
-POST    /graphql                    controllers.GraphQLController.graphql
+POST    /graphql                    controllers.GraphQLController.executeRequest
 
 # Serve static assets under public directory
 GET     /*file                      controllers.FrontendController.assetOrDefault(file)

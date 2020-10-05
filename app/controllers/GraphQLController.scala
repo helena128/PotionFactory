@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 
-import app.{AppContext, DBSchema}
+import config.DBSchema
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
@@ -12,16 +12,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import sangria.parser._
 import sangria.marshalling.playJson._
 import sangria.execution._
+import security.AppContext
 
 import scala.concurrent.duration.Duration
 
 @Singleton
 class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
-  private val renderedSchema = app.graphql.schema.renderPretty
+  private val renderedSchema = graphql.schema.renderPretty
 
   val schema: Action[AnyContent] = Action { Ok(renderedSchema) }
 
-  val graphql: Action[JsValue] = Action.async(parse.json) { request ⇒
+  val executeRequest: Action[JsValue] = Action.async(parse.json) { request ⇒
     println("New GraphQL query: " + request.body)
     println("Session: " + request.session)
 
@@ -51,7 +52,7 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
       QueryParser
         .parse(query)
         .map(
-          app.graphql.execute(_, operation, variables, AppContext(sessionId, GraphQLController.dao))
+          graphql.execute(_, operation, variables, AppContext(sessionId, GraphQLController.dao))
           .map(Ok(_).withSession(session))
           .recover {
             case error: QueryAnalysisError ⇒ BadRequest(error.resolveError)

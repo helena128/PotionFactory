@@ -6,7 +6,7 @@ organization := "com.github.helena128"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 
-graphqlSchemaSnippet := "app.graphql.schema"
+graphqlSchemaSnippet := "graphql.schema"
 target in graphqlSchemaGen := new File("./public")
 
 val reloadSchema: TaskKey[Unit] =
