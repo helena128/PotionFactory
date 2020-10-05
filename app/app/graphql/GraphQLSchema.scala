@@ -7,7 +7,7 @@ import app.{AppContext, DBSchema}
 import sangria.schema._
 import sangria.execution.deferred._
 import sangria.macros.derive._
-import app.Models._
+import app.models._
 import org.joda.time.DateTime
 import sangria.ast.{ListValue, StringValue}
 import sangria.execution.{ExceptionHandler, FieldTag, HandledException}

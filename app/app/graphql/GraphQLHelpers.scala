@@ -2,8 +2,8 @@ package app.graphql
 
 import java.time.ZonedDateTime
 
-import app.Models.User.Credentials
-import app.Models.{IngredientRequest, Order}
+import app.models.User.Credentials
+import app.models.{IngredientRequest, Order}
 import sangria.ast.StringValue
 import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
 import sangria.schema.ScalarType

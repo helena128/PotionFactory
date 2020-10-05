@@ -3,7 +3,7 @@ package app
 import java.util.UUID
 
 import app.graphql.AuthMiddleware.AuthenticationException
-import Models.User
+import models.User
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, ZonedDateTime}
 
 import slick.jdbc.H2Profile.api._
 import app.DBSchema._
-import Models._
+import models._
 import slick.jdbc.{GetResult, PositionedResult}
 
 import scala.concurrent.Future

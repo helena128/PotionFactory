@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 import java.time.{LocalDateTime, ZonedDateTime}
 
 import scala.util.Random
-import Models._
+import models._
 import com.fasterxml.jackson.databind.ObjectMapper
 import slick.jdbc.GetResult
 import slick.sql.SqlProfile.{ColumnOption => CO}
