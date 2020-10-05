@@ -2,7 +2,7 @@ package app
 
 import java.util.UUID
 
-import app.graphql.AuthMiddleware.AuthenticationException
+import app.graphql.middleware.AuthMiddleware.AuthenticationException
 import models.User
 
 import scala.concurrent.Await
@@ -19,19 +19,10 @@ case class AppContext(sessionId: String, dao: DAO, currentUser: Option[User] = N
   }
 
   def logout() = Await.result(dao.deleteSession(sessionId), Duration.Inf)
-
-//  def isAuthenticated() = currentUser.nonEmpty
 }
 object AppContext {
   def apply(sessionId: String, dao: DAO): AppContext = {
-//    val results = Await.result(dao.listSessions, Duration.Inf)
-//    println(results)
-//    println(results.size)
-
     val userOpt = Await.result(dao.getSession[User](sessionId), Duration.Inf)
-
-//    println("userOpt: " + userOpt)
-
     new AppContext(sessionId, dao, userOpt)
   }
 }

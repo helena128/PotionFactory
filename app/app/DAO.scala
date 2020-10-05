@@ -43,6 +43,12 @@ case class DAO(db: Database) {
   def getProducts(ids: Seq[Int]): Future[Seq[Product]] = db run Products.filter(_.id inSet ids).result
   def getAllProducts: Future[Seq[Product]] = db run Products.result
 
+  def getOrders(ids: Seq[Int]): Future[Seq[Order]] = db run Orders.filter(_.id inSet ids).result
+
+  def getProductTransfer(id: Int): Future[ProductTransfer] = db run ProductTransfers.filter(_.id === id).result.head
+
+  def getIngredientRequest(id: Int): Future[IngredientRequest] = db run IngredientRequests.filter(_.id === id).result.head
+
   def create(u: User): Future[String] = db run (Users.returning(Users.map(_.id)) += u)
   def create(o: Order): Future[Int] = db run (Orders.returning(Orders.map(_.id)) += o)
   def create(req: IngredientRequest): Future[Int] =

@@ -17,10 +17,18 @@ object UserRole extends Enumeration {
   implicit def fromString(s: String): UserRole = apply(s)
 
   val Admin = Value(0, "admin")
-  val Fairy = Value(1, "fairy")
-  val Client = Value(2, "client")
-  val WorkshopManager = Value(3, "workshop-manager")
-  val WarehouseManager = Value(4, "warehouse-manager")
+  val Client = Value(1, "client")
+  val Fairy = Value(10, "fairy")
+  val WorkshopManager = Value(1000, "workshop-manager")
+  val WorkshopWorker = Value(1001, "workshop-worker")
+  val WarehouseManager = Value(2000, "warehouse-manager")
+  val WarehouseWorker = Value(2001, "warehouse-worker")
+
+  def isAdmin(u: UserRole): Boolean = Seq(Admin, Fairy).contains(u)
+  def isWorker(u: UserRole): Boolean = Seq(WorkshopWorker, WarehouseWorker).contains(u)
+  def isWorkshop(u: UserRole): Boolean = Seq(WorkshopWorker, WorkshopManager).contains(u)
+  def isWarehouse(u: UserRole): Boolean = Seq(WarehouseWorker, WarehouseManager).contains(u)
+  def isManager(u: UserRole): Boolean = Seq(WorkshopManager, WarehouseManager).contains(u)
 }
 
 case class User(id: String,
@@ -36,6 +44,19 @@ case class User(id: String,
             role: UserRole) =
     new User(id, User.hashpw(password), name, email, phone, address, role)
   def checkpw(s: String): Boolean = User.checkpw(s, password)
+
+  def isClient: Boolean = role == UserRole.Client
+  def isFairy: Boolean = role == UserRole.Fairy
+  def isWorkshopManager: Boolean = role == UserRole.WorkshopManager
+  def isWorkshopWorker: Boolean = role == UserRole.WorkshopWorker
+  def isWarehouseManager: Boolean = role == UserRole.WarehouseManager
+  def isWarehouseWorker: Boolean = role == UserRole.WarehouseWorker
+
+  def isAdmin: Boolean = UserRole.isAdmin(role)
+  def isWorker: Boolean = UserRole.isWorker(role)
+  def isWorkshop: Boolean = UserRole.isWorkshop(role)
+  def isWarehouse: Boolean = UserRole.isWarehouse(role)
+  def isManager: Boolean = UserRole.isManager(role)
 }
 
 object User extends {

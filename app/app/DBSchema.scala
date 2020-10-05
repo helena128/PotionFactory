@@ -203,7 +203,9 @@ object DBSchema {
         ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy),
         ("waremgr", "qwerty", "Warehouse Manager", "warehouse@potions.factory", "555-1111", "Potions Factory", WarehouseManager),
         ("workmgr", "qwerty", "Workshop Manager", "workshop@potions.factory", "555-2222", "Potions Factory", WorkshopManager),
-        ("client", "qwerty", "John Doe", "johndoe@example.com", "555-5555", "Bottom of the ocean", Client)
+        ("client", "qwerty", "John Doe", "johndoe@example.com", "555-5555", "Bottom of the ocean", Client),
+        ("workworker", "qwerty", "Dollar Mitch", "mitch@potions.factory", "555-8888", "Potions Factory", WorkshopWorker),
+        ("wareworker", "qwerty", "Sixteen Joe", "joe@potions.factory", "555-9999", "Potions Factory", WorkshopWorker)
       ),
 
     Knowledges forceInsertAll Seq(
