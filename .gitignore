@@ -1,6 +1,5 @@
 logs
-/target/*
-!/target/schema.graphql
+target
 /.metals
 /.idea
 /.idea_modules
