@@ -10,7 +10,6 @@ import sangria.schema.AstSchemaMaterializer
 import security.AppContext
 
 import scala.reflect.ClassTag
-//import sangria.marshalling.{InputUnmarshaller, ResultMarshaller}
 import sangria.schema.{ObjectType, Schema, fields}
 import sangria.marshalling.playJson._
 
@@ -90,7 +89,7 @@ package object graphql {
       ingredient.schema, knowledge.schema, order.schema, product.schema, recipe.schema,
       request.schema
     ).reduce(_ + _)
-  val schema = stitchedSchema.copy(
+  val schema: Schema[AppContext, Unit] = stitchedSchema.copy(
     query = stitchedSchema.query.copy(name = "Query"),
     mutation = stitchedSchema.mutation.map(_.copy(name = "Mutation")))
 
@@ -120,18 +119,5 @@ package object graphql {
   private val ErrorHandler = ExceptionHandler {
     case (m, AuthenticationException(message)) ⇒ HandledException(message)
     case (m, AuthorizationException(message)) ⇒ HandledException(message)
-  }
-
-  trait Queries {
-    val queries: ObjectType[AppContext, Unit]
-    def apply(): ObjectType[AppContext, Unit] = queries
-  }
-  trait Mutations {
-    val mutations: ObjectType[AppContext, Unit] = null;
-    def apply(): Option[ObjectType[AppContext, Unit]] = Option(mutations)
-  }
-  trait Fetchers[Res, RelRes, Id] {
-    val fetchers: Seq[Fetcher[AppContext, Res, RelRes, Id]]
-    def apply(): Seq[Fetcher[AppContext, Res, RelRes, Id]] = fetchers
   }
 }
