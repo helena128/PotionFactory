@@ -6,6 +6,7 @@ import config.DBSchema
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
+import repository.dao
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +41,7 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
     // TODO: Redo sessioning
     val sessionIdOpt =
       request.session.get("session_id")
-      .filter(s => Await.result(GraphQLController.dao.isSessionActive(s), Duration.Inf))
+      .filter(s => Await.result(dao.isSessionActive(s), Duration.Inf))
 
     val sessionId = sessionIdOpt.getOrElse(UUID.randomUUID().toString)
     val session =
@@ -52,7 +53,7 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
       QueryParser
         .parse(query)
         .map(
-          graphql.execute(_, operation, variables, AppContext(sessionId, GraphQLController.dao))
+          graphql.execute(_, operation, variables, AppContext(sessionId, dao))
           .map(Ok(_).withSession(session))
           .recover {
             case error: QueryAnalysisError ⇒ BadRequest(error.resolveError)
@@ -67,8 +68,3 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
     result
   }
 }
-
-object GraphQLController {
-  val dao = DBSchema.createDatabase
-}
-

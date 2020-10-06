@@ -1,21 +1,20 @@
 package repository
 
-import java.time.ZonedDateTime
-
-import config.DBSchema.{IngredientRequests, Ingredients, Knowledges, Orders, ProductTransfers, Products, Recipes, Sessions, Users}
 import models._
-
-import java.time.{LocalDateTime, ZonedDateTime}
+import java.time.ZonedDateTime
 
 import slick.jdbc.H2Profile.api._
 import config.DBSchema._
-import slick.jdbc.{GetResult, PositionedResult}
+import slick.dbio.{DBIOAction, NoStream}
+import slick.jdbc.GetResult
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits._
 import utils.Serializer._
 
 case class DAO(db: Database) {
+  def run[R](a: DBIOAction[R, NoStream, Nothing]): Future[R] = db.run(a)
+
   def getUser(id: String): Future[User] = db run Users.filter(_.id === id).result.head
   def authenticate(id: String, password: String): Future[Option[User]] =
     (db run Users.filter(_.id === id).result.headOption)
@@ -74,3 +73,17 @@ case class DAO(db: Database) {
   def listSessions = db run Sessions.map(r => (r.id, r.content)).result
   def deleteSession(id: String): Future[Boolean] = (db run Sessions.filter(_.id === id).delete).map(_ > 0)
 }
+
+//object DAO {
+//  private[repository] def apply(): DAO = {
+//    val db = Database.forConfig("h2mem")
+//
+//    db.run(sql"""SHOW TABLES""".as[String])
+//      .andThen({case t =>
+//        if (t.get.nonEmpty) Await.result(db.run(schema.dropIfExists), 10 seconds)
+//        Await.result(db.run(setup), 10 seconds)
+//      })
+//
+//    new DAO(db)
+//  }
+//}

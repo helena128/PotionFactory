@@ -1,16 +1,12 @@
 package config
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream, Serializable}
-import java.time.{LocalDateTime, ZonedDateTime}
+import java.io.Serializable
+import java.time.ZonedDateTime
 
 import scala.util.Random
-import com.fasterxml.jackson.databind.ObjectMapper
 import repository.DAO
 import slick.jdbc.GetResult
-import slick.sql.SqlProfile.{ColumnOption => CO}
 
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import scala.concurrent.Await
 import scala.reflect.ClassTag
 import slick.jdbc.H2Profile.api._
@@ -187,14 +183,14 @@ object DBSchema {
     "Olive oil enhanced with plantain", superOliveOil.id,
     rand.between(10, 100), rand.between(5, 10))
 
-  val fullSchema = Seq(
+  val schema = Seq(
     Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers,
     Sessions)
     .map(_.schema)
     .reduce(_ ++ _)
 
-  val databaseSetup = DBIO.seq(
-    fullSchema.createIfNotExists,
+  val setup = DBIO.seq(
+    schema.createIfNotExists,
 
     Users forceInsertAll
       Seq[User](
@@ -245,20 +241,6 @@ object DBSchema {
     ).map(ProductTransfer.tupled),
   )
 
-
   implicit val getSearchKnowledgeResult =
     GetResult[Seq[String]](_.nextObject().asInstanceOf[Seq[String]])
-
-  def createDatabase: DAO = {
-    val db = Database.forConfig("h2mem")
-
-//    Await.result(db run sql"""SHOW TABLES""".as[String], 5 seconds).foreach(println)
-    db.run(sql"""SHOW TABLES""".as[String])
-      .andThen({case t =>
-        if (t.get.nonEmpty) Await.result(db.run(fullSchema.dropIfExists), 10 seconds)
-        Await.result(db.run(databaseSetup), 10 seconds)
-      })
-
-    new DAO(db)
-  }
 }
