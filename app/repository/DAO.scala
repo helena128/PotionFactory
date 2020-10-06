@@ -23,7 +23,7 @@ case class DAO(db: Database) {
 
   implicit val getKnowledge = GetResult(
     r => Knowledge(
-      r.nextInt(), KnowledgeKind(r.nextString()),
+      r.nextInt(), Knowledge.Kind(r.nextString()),
       r.nextString(), ZonedDateTime.parse(r.nextString()), r.nextString()))
 
   def searchKnowledge(s: String, limit: Int, lookaround: Int): Future[Seq[Knowledge]] =

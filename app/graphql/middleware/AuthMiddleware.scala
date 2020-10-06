@@ -14,10 +14,15 @@ object AuthMiddleware extends Middleware[AppContext] with MiddlewareBeforeField[
   override def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[AppContext, _, _]) = ()
 
   override def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[AppContext, _, _], c: Context[AppContext, _]) = {
-    println("Field: " + c.field)
-    println("User: " + c.ctx.currentUser)
-
     val user = c.ctx.currentUser
+
+    user match {
+      case None => println("User: Unauthorized")
+      case Some(user) =>
+        println(f"User: ${user.name} (role: ${user.role})")
+    }
+    println(f"Field: ${c.field.name} (tags: ${c.field.tags.mkString(", ")})")
+
     val roleTags = c.field.tags.filter(_.isInstanceOf[RoleTag])
     val passed = roleTags.isEmpty || roleTags.exists { case rt: RoleTag => rt.check(user) }
 

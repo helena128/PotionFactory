@@ -1,6 +1,7 @@
 package graphql.transfer
 
-import models.{ProductTransfer, ProductTransferStatus}
+import models.ProductTransfer
+import models.ProductTransfer.Status
 import sangria.macros.derive.{EnumTypeName, IncludeValues, Interfaces, ObjectTypeName, ReplaceField, deriveEnumType, deriveObjectType}
 import sangria.schema.{Field, ListType}
 import graphql.Types._
@@ -10,7 +11,7 @@ import security.AppContext
 
 object Types {
   implicit val ProductTransferStatusType =
-    deriveEnumType[ProductTransferStatus.Value](EnumTypeName("ProductTransferStatus"),
+    deriveEnumType[ProductTransfer.Status.Value](EnumTypeName("ProductTransferStatus"),
       IncludeValues("Produced", "Transferred", "Stored"))
   implicit val ProductTransferType = deriveObjectType[AppContext, ProductTransfer](
     Interfaces(IdentifiableWithIntType),

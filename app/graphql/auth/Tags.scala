@@ -1,6 +1,6 @@
 package graphql.auth
 
-import models.{User, UserRole}
+import models.User
 import sangria.execution.FieldTag
 import security.AppContext
 

@@ -56,7 +56,7 @@ object DBSchema {
 //    def * = (id, s) <> (MyObject.tupled, MyObject.unapply)
 //  }
 
-  implicit val UserRoleMapper = MappedColumnType.base[UserRole, String](_.toString, UserRole.withName)
+  implicit val UserRoleMapper = MappedColumnType.base[User.Role, String](_.toString, User.Role.withName)
   class UserTable(tag: Tag) extends Table[User](tag, "USERS") {
     val id = column[String]("ID", O.PrimaryKey)
     val password = column[String]("PASSWORD")
@@ -64,15 +64,15 @@ object DBSchema {
     val email = column[String]("EMAIL")
     val phone = column[Option[String]]("PHONE")
     val address = column[Option[String]]("ADDRESS")
-    val role = column[UserRole]("ROLE")
+    val role = column[User.Role]("ROLE")
     val * = (id, password, name, email, phone, address, role).mapTo[User]
   }
   val Users = TableQuery[UserTable]
 
-  implicit val KnowledgeKindMapper = MappedColumnType.base[KnowledgeKind, String](_.toString, KnowledgeKind.withName)
+  implicit val KnowledgeKindMapper = MappedColumnType.base[Knowledge.Kind, String](_.toString, Knowledge.Kind.withName)
   class KnowledgeTable(tag: Tag) extends Table[Knowledge](tag, "KNOWLEDGES") {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
-    val kind = column[KnowledgeKind]("KIND")
+    val kind = column[Knowledge.Kind]("KIND")
     val name = column[String]("NAME")
     val addedAt = column[ZonedDateTime]("ADDED_AT")
     val content = column[String]("CONTENT")
@@ -141,13 +141,13 @@ object DBSchema {
 
 
   private implicit val ProductTransferStatusMapper =
-    MappedColumnType.base[ProductTransferStatus, String](_.toString, ProductTransferStatus.withName)
+    MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
 
   class ProductTransferTable(tag: Tag) extends Table[ProductTransfer](tag, "PRODUCT_TRANSFERS") {
     private implicit val productListMapper = objectMapper[ProductList]
 
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
-    val status = column[ProductTransferStatus]("STATUS")
+    val status = column[ProductTransfer.Status]("STATUS")
     val products = column[ProductList]("CONTENTS")
     def * = (id, status, products).mapTo[ProductTransfer]
   }
@@ -165,9 +165,9 @@ object DBSchema {
    * Populate database with stub values
    */
 
-  import KnowledgeKind._
-  import UserRole._
-  private implicit def tupToUser(t: (String, String, String, String, String, String, UserRole)): User =
+  import Knowledge.Kind._
+  import User.Role._
+  private implicit def tupToUser(t: (String, String, String, String, String, String, User.Role)): User =
     User(t._1, User.hashpw(t._2), t._3, t._4, Option(t._5), Option(t._6), t._7)
 
   private val plantain = Ingredient(0, "Plantain", ZonedDateTime.now().minusDays(10), "It heals", rand.between(10, 100))
@@ -241,7 +241,7 @@ object DBSchema {
     Orders forceInsertAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
 
     ProductTransfers forceInsertAll Seq(
-      (0, ProductTransferStatus.Transferred, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id))
+      (0, ProductTransfer.Status.Transferred, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id))
     ).map(ProductTransfer.tupled),
   )
 
