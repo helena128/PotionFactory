@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+secrets_file='secrets.sh'
+if [ -f $secrets_file ]; then
+  . secrets.sh
+fi
+
 SSHUSER="${SSHUSER:-s207220}@"
 test "$SSHUSER" == "@" && SSHUSER=""
 SSHPORT="${SSHPORT:-2222}"
 SECRET="${SECRET:-my-super-secret}"
+MAILER_PASSWORD="${MAILER_PASSWORD:?MAILER_PASSWORD is not set}"
 PORT=${PORT:-55000}
 FWDPORT="${FWDPORT:-$PORT}"
 BUILDPATH="${BUILD:-./target/universal/potion-factory-1.0-SNAPSHOT.zip}"
@@ -56,6 +62,7 @@ rm \"${BUILDAR}\"
 #echo \"[INFO] Starting release\"
 #./potion-factory/${BUILDNAME}/bin/potion-factory \\
 # -Dplay.http.secret.key=${SECRET} \\
+# -Dplay.mailer.password=${MAILER_PASSWORD}
 # -Dhttp.port=${PORT}
 
 kill $fwdpid

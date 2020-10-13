@@ -34,10 +34,13 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.8.1",
   "com.h2database" % "h2" % "1.4.199",
   "org.sangria-graphql" %% "sangria" % "1.4.2",
+
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "org.mindrot" % "jbcrypt" % "0.3m",
 //  "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test,
+  "com.typesafe.play" %% "play-mailer" % "8.+",
+  "com.typesafe.play" %% "play-mailer-guice" % "8.+"
 )
 
 
