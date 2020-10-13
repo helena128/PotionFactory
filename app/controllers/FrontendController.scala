@@ -11,7 +11,7 @@ import play.api.mvc._
   * @param cc Controller components reference.
   */
 @Singleton
-class  FrontendController @Inject()(assets: Assets,
+class FrontendController @Inject()(assets: Assets,
                                    errorHandler: HttpErrorHandler,
                                    config: Configuration,
                                    cc: ControllerComponents) extends AbstractController(cc) {

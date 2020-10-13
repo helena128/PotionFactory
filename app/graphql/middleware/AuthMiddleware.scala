@@ -1,7 +1,7 @@
 package graphql.middleware
 
 import graphql.auth.Tags.RoleTag
-import sangria.execution.{Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
+import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
 import sangria.schema.Context
 import security.AppContext
 
@@ -13,7 +13,10 @@ object AuthMiddleware extends Middleware[AppContext] with MiddlewareBeforeField[
 
   override def afterQuery(queryVal: QueryVal, context: MiddlewareQueryContext[AppContext, _, _]) = ()
 
-  override def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[AppContext, _, _], c: Context[AppContext, _]) = {
+  override def beforeField(queryVal: QueryVal,
+                           mctx: MiddlewareQueryContext[AppContext, _, _],
+                           c: Context[AppContext, _]
+                          ): BeforeFieldResult[AppContext, Unit] = {
     val user = c.ctx.currentUser
 
     user match {

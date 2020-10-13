@@ -1,9 +1,4 @@
-import java.io.{BufferedWriter, File, FileWriter}
-import java.nio.file.Files
-
 import com.google.inject.AbstractModule
-
-import scala.reflect.io.Directory
 
 /**
  * This class is a Guice module that tells Guice how to bind several

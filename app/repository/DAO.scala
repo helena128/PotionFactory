@@ -70,7 +70,7 @@ case class DAO(db: Database) {
         .headOption)
       .map(_.map(_.deserialize[T])))
   def isSessionActive(id: String): Future[Boolean] = db run Sessions.filter(_.id === id).exists.result
-  def listSessions = db run Sessions.map(r => (r.id, r.content)).result
+  def listSessions(): Future[Seq[(String, Array[Byte])]] = db run Sessions.map(r => (r.id, r.content)).result
   def deleteSession(id: String): Future[Boolean] = (db run Sessions.filter(_.id === id).delete).map(_ > 0)
 }
 
