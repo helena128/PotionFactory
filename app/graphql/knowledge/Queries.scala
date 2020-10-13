@@ -19,5 +19,6 @@ object Queries extends graphql.Queries {
         tags = FairyTag :: Nil),
       Field("getKnowledge", KnowledgeType,
         arguments = IdInt :: Nil,
-        resolve = c => c.ctx.dao.getKnowledge(c.arg(IdInt)))))
+        resolve = c => c.ctx.dao.getKnowledge(c.arg(IdInt)),
+        tags = FairyTag :: Nil)))
 }
