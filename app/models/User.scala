@@ -2,21 +2,20 @@ package models
 
 import java.io.Serializable
 
+import models.User.Role
 import org.mindrot.jbcrypt.BCrypt
 
-case class User(id: String,
-                password: String,
-                name: String,
-                email: String,
-                phone: Option[String],
-                address: Option[String],
-                role: User.Role = User.Role.Client
+case class User private (id: String,
+                 password: String,
+                 name: String,
+                 email: String,
+                 phone: Option[String],
+                 address: Option[String],
+                 role: User.Role,
+                 status: User.Status
                ) extends Identifiable[String] with Serializable {
-  def apply(id: String, password: String,
-            name: String, email: String, phone: Option[String], address: Option[String],
-            role: User.Role) =
-    new User(id, User.hashpw(password), name, email, phone, address, role)
-  def checkpw(s: String): Boolean = User.checkpw(s, password)
+
+  def hasPassword(s: String): Boolean = User.checkpw(s, password)
 
   def isClient: Boolean = role == User.Role.Client
   def isFairy: Boolean = role == User.Role.Fairy
@@ -33,11 +32,53 @@ case class User(id: String,
 }
 
 object User extends {
+  def apply(id: String, password: String,
+            name: String, email: String, phone: Option[String], address: Option[String],
+            role: User.Role = User.Role.Client,
+            status: User.Status = User.Status.Deactivated,
+            isHashedPassword: Boolean = false): User = {
+    val hashedPassword =
+      if (isHashedPassword) password else hashpw(password)
+
+    new User(id, hashedPassword, name, email, phone, address, role, status)
+  }
+
+  val hashedTupled =
+    (t: (String, String, String, String, Option[String], Option[String], User.Role, User.Status)) =>
+      new User(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8)
+  val tupled = (User.apply _).tupled
+
   private val salt = BCrypt.gensalt(12)
+
   def hashpw(s: String): String = BCrypt.hashpw(s, salt)
   def checkpw(s: String, pw: String): Boolean = BCrypt.checkpw(s, pw)
-  val tupled = (User.apply _).tupled
-  case class Credentials(id: String, password: String)
+
+  case class Credentials private (id: String, password: String)
+  object Credentials {
+    def apply(id: String, password: String): Credentials = {
+      new Credentials(id, hashpw(password))
+    }
+  }
+
+  type Role = Role.Value
+  type Status = Status.Value
+
+  object Status extends Enumeration {
+    protected case class Val(override val id: Int, name: String)
+      extends super.Val(id)
+        with Identifiable[Int] {
+    }
+
+    def apply(s: String): Status = withName(s)
+
+    import scala.language.implicitConversions
+    implicit def fromId(id: Int): Status = apply(id);
+    implicit def fromString(s: String): Status = apply(s)
+
+    val Verification = Value(0, "verification")
+    val Active = Value(1, "active")
+    val Deactivated = Value(2, "deactivated")
+  }
 
   object Role extends Enumeration {
     protected case class Val(override val id: Int, name: String)
@@ -65,5 +106,4 @@ object User extends {
     def isWarehouse(u: Role): Boolean = Seq(WarehouseWorker, WarehouseManager).contains(u)
     def isManager(u: Role): Boolean = Seq(WorkshopManager, WarehouseManager).contains(u)
   }
-  type Role = Role.Value
 }

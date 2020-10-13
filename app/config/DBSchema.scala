@@ -53,6 +53,8 @@ object DBSchema {
 //  }
 
   implicit val UserRoleMapper = MappedColumnType.base[User.Role, String](_.toString, User.Role.withName)
+  implicit val UserStatusMapper = MappedColumnType.base[User.Status, String](_.toString, User.Status.withName)
+
   class UserTable(tag: Tag) extends Table[User](tag, "USERS") {
     val id = column[String]("ID", O.PrimaryKey)
     val password = column[String]("PASSWORD")
@@ -61,7 +63,11 @@ object DBSchema {
     val phone = column[Option[String]]("PHONE")
     val address = column[Option[String]]("ADDRESS")
     val role = column[User.Role]("ROLE")
-    val * = (id, password, name, email, phone, address, role).mapTo[User]
+    val status = column[User.Status]("STATUS")
+    val * = (id, password, name, email, phone, address, role, status) <> (
+      User.hashedTupled,
+      User.unapply
+    )
   }
   val Users = TableQuery[UserTable]
 
