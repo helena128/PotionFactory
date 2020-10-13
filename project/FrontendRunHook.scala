@@ -17,7 +17,7 @@ object FrontendRunHook {
         * Change the commands in `FrontendCommands.scala` if you want to use Yarn.
         */
       var install: String = FrontendCommands.dependencyInstall
-      var run: String = FrontendCommands.serve
+      var run: String = FrontendCommands.watch
 
       // Windows requires npm commands prefixed with cmd /c
       if (System.getProperty("os.name").toLowerCase().contains("win")){
