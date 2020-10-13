@@ -7,7 +7,7 @@ import email.templates.html.Confirmation
 import org.apache.commons.mail.EmailAttachment
 import javax.inject.Inject
 
-class MailerService @Inject() (mailerClient: MailerClient) {
+class MailService @Inject()(mailerClient: MailerClient) {
   def sendEmail = {
 //    val email = Email(
 //      "Simple email",
