@@ -29,7 +29,7 @@ object AuthMiddleware extends Middleware[AppContext] with MiddlewareBeforeField[
     (passed, c.ctx.currentUser.isEmpty) match {
       case (true, _) => continue
       case (false, true) => throw AuthorizationException("Permission denied. You have no rights")
-      case (false, false) => throw AuthorizationException("Permission denied. Please sign in")
+      case (false, false) => throw AuthenticationException("Permission denied. Please sign in")
     }
   }
 
