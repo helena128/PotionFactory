@@ -12,7 +12,7 @@ import security.AppContext
 object Types {
   implicit val ProductTransferStatusType =
     deriveEnumType[ProductTransfer.Status.Value](EnumTypeName("ProductTransferStatus"),
-      IncludeValues("Produced", "Transferred", "Stored"))
+      IncludeValues("Produced", "Transfer", "Stored"))
   implicit val ProductTransferType = deriveObjectType[AppContext, ProductTransfer](
     Interfaces(IdentifiableWithIntType),
     ObjectTypeName("ProductTransfer"),

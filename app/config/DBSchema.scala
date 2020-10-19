@@ -243,7 +243,9 @@ object DBSchema {
     Orders forceInsertAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
 
     ProductTransfers forceInsertAll Seq(
-      (0, ProductTransfer.Status.Transferred, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id))
+      (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id)),
+      (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id)),
+      (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id)),
     ).map(ProductTransfer.tupled),
   )
 

@@ -15,7 +15,7 @@ object ProductTransfer {
         with Identifiable[Int]
 
     val Produced = Val(0, "produced")
-    val Transferred = Val(1, "transferred")
+    val Transfer = Val(1, "transfer")
     val Stored = Val(2, "stored")
   }
 
