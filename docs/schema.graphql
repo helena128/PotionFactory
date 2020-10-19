@@ -74,17 +74,18 @@ type Product implements IdentifiableWithInt {
 
 "Schema Queries"
 type Query {
-  allIngredients: [Ingredient!]!
-  order(id: Int!): Order!
-  recipe(id: Int!): Recipe!
   loggedIn: Boolean!
-  ingredient(id: Int!): Ingredient!
-  allProducts: [Product!]!
   currentUser: User
-  getKnowledge(id: Int!): Knowledge!
   user(id: String!): User
-  product(id: Int!): Product!
+  allUsers: [User!]!
+  ingredient(id: Int!): Ingredient!
+  allIngredients: [Ingredient!]!
   searchKnowledge(string: String!, limit: Int!, lookaround: Int!): [Knowledge!]!
+  getKnowledge(id: Int!): Knowledge!
+  order(id: Int!): Order!
+  product(id: Int!): Product!
+  allProducts: [Product!]!
+  recipe(id: Int!): Recipe!
   request(id: Int!): IngredientRequest!
 }
 

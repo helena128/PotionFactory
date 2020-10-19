@@ -15,7 +15,10 @@ package object graphql {
   // MAGIC: Sangria can't stitch schemas with same definitions.
   // Doing it our way found by hard work
   implicit class StitchedSchema[A, B](left: Schema[A, B])(implicit t: ClassTag[B]) {
-    private def nodups[T](left: TraversableOnce[T], right: TraversableOnce[T]): Vector[T] = {
+    private def nodups[T](left: TraversableOnce[T],
+                          right: TraversableOnce[T],
+                          leanRight: Boolean = true
+                         ): Vector[T] = {
 //      val lv = left.toVector
 //      val rv = right.toVector
 //
@@ -33,7 +36,22 @@ package object graphql {
 //      else {
 //        s.toVector
 //      }
-      (left.toSet ++ right.toSet).toVector
+      val concatenated = (left.toVector ++ right.toVector)
+      if (!leanRight) concatenated.distinct
+      else {
+        concatenated
+          .foldRight((Set.empty[T], List.empty[T])) {
+            case (el, acc @ (set, els)) =>
+              if (set.contains(el)) {
+                acc
+              }
+              else {
+                (set + el, el :: els)
+              }
+          }
+          ._2
+          .toVector
+      }
     }
 
 //    private def mergeObjectTypeOption(os: ObjectType[A, B]*): Option[ObjectType[A, B]] = {
@@ -57,7 +75,7 @@ package object graphql {
         val r = mergeObjectType(rest)
         l.copy(
           fieldsFn = () => nodups(l.fieldsFn(), r.fieldsFn()).toList,
-          interfaces = nodups(l.interfaces, r.interfaces).toList,
+          interfaces = nodups(l.interfaces, r.interfaces, leanRight = false).toList,
           astDirectives = nodups(l.astDirectives, r.astDirectives),
           astNodes = nodups(l.astNodes, r.astNodes)
         )
@@ -68,9 +86,9 @@ package object graphql {
         query = mergeObjectType(left.query, right.query),
         mutation = mergeObjectTypeOption(List(left.mutation, right.mutation).flatten),
         subscription = mergeObjectTypeOption(List(left.subscription, right.subscription).flatten),
-        additionalTypes = nodups(left.additionalTypes, right.additionalTypes).toList,
+        additionalTypes = nodups(left.additionalTypes, right.additionalTypes, leanRight = false).toList,
         directives = nodups(left.directives, right.directives).toList,
-        validationRules = nodups(left.validationRules, right.validationRules).toList,
+        validationRules = nodups(left.validationRules, right.validationRules, leanRight = false).toList,
         astDirectives = nodups(left.astDirectives, right.astDirectives),
         astNodes = nodups(left.astNodes, right.astNodes)
       )
@@ -85,6 +103,7 @@ package object graphql {
       ingredient.schema, knowledge.schema, order.schema, product.schema, recipe.schema,
       request.schema
     ).reduce(_ + _)
+
   val schema: Schema[AppContext, Unit] = stitchedSchema.copy(
     query = stitchedSchema.query.copy(name = "Query"),
     mutation = stitchedSchema.mutation.map(_.copy(name = "Mutation")))
