@@ -1,7 +1,7 @@
 name := """potion-factory"""
 version := "1.0-SNAPSHOT"
 organization := "com.github.helena128"
-//maintainer := ""
+maintainer := "Yaroslav Rogov, Elena Cheprasova, Ilya Pnachin"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
