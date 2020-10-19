@@ -39,6 +39,8 @@ object DBSchema {
       User.hashedTupled,
       User.unapply
     )
+
+    val uniqueEmailConstraint = index("EMAIL_UNIQUE", (email), unique = true)
   }
   val Users = TableQuery[UserTable]
 
@@ -121,8 +123,6 @@ object DBSchema {
     val orderedByFK = foreignKey("orderedByFK", orderedBy, Users)(_.id)
   }
   val Orders = TableQuery[OrderTable]
-
-
 
   private implicit val ProductTransferStatusMapper =
     MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
