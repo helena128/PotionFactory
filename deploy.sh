@@ -12,7 +12,7 @@ SECRET="${SECRET:-my-super-secret}"
 MAILER_PASSWORD="${MAILER_PASSWORD:?MAILER_PASSWORD is not set}"
 PORT=${PORT:-55000}
 FWDPORT="${FWDPORT:-$PORT}"
-BUILDPATH="${BUILD:-./target/universal/potion-factory-1.0-SNAPSHOT.zip}"
+BUILDPATH="${BUILD:-$(ls -1ct target/universal/*zip | head -1)}"
 
 BUILDAR="$(basename "${BUILDPATH}")"
 BUILDNAME="$(basename "${BUILDPATH}" .zip)"
@@ -57,12 +57,14 @@ echo A | unzip \"${BUILDAR}\" -d potion-factory
 
 echo \"[INFO] Removing release archive\"
 rm \"${BUILDAR}\"
+
+echo \"[INFO] Starting release\"
+set -x
+./potion-factory/${BUILDNAME}/bin/potion-factory \\
+ -Dplay.http.secret.key=${SECRET} \\
+ -Dplay.mailer.password=${MAILER_PASSWORD} \\
+ -Dhttp.port=${PORT}
+set +x
 "
-#
-#echo \"[INFO] Starting release\"
-#./potion-factory/${BUILDNAME}/bin/potion-factory \\
-# -Dplay.http.secret.key=${SECRET} \\
-# -Dplay.mailer.password=${MAILER_PASSWORD}
-# -Dhttp.port=${PORT}
 
 kill $fwdpid
