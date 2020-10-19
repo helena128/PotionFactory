@@ -5,7 +5,6 @@ import models.Order
 import sangria.macros.derive.{ExcludeInputFields, InputObjectTypeName, deriveInputObjectType}
 import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
 import sangria.schema.{Argument, Field, IntType, ObjectType, fields}
-import Types._
 import security.AppContext
 
 object Mutations extends graphql.Mutations {

@@ -1,12 +1,12 @@
 package graphql.auth
 
 import graphql.auth.Tags.NotAuthenticatedTag
-import sangria.schema.{Argument, BooleanType, Field, ObjectType, OptionType, UpdateCtx, fields}
 import graphql.user.Types._
 import models.User
 import models.User.Credentials
 import sangria.macros.derive.{InputObjectTypeName, deriveInputObjectType}
 import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
+import sangria.schema.{Argument, BooleanType, Field, ObjectType, OptionType, UpdateCtx, fields}
 import security.AppContext
 
 object Mutations extends graphql.Mutations {

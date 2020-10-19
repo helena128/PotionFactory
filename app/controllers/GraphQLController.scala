@@ -2,20 +2,18 @@ package controllers
 
 import java.util.UUID
 
-import config.DBSchema
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
 import repository.dao
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import sangria.parser._
-import sangria.marshalling.playJson._
 import sangria.execution._
+import sangria.marshalling.playJson._
+import sangria.parser._
 import security.AppContext
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 @Singleton
 class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {

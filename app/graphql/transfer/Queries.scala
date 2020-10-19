@@ -1,9 +1,9 @@
 package graphql.transfer
 
-import sangria.schema._
-import Types._
 import graphql.Args._
 import graphql.auth.Tags._
+import graphql.transfer.Types._
+import sangria.schema._
 import security.AppContext
 
 object Queries extends graphql.Queries {

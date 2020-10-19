@@ -1,9 +1,9 @@
 package graphql.knowledge
 
-import models.Knowledge
-import models.Knowledge.Kind
-import sangria.macros.derive.{EnumTypeName, IncludeValues, Interfaces, ObjectTypeName, deriveEnumType, deriveObjectType}
 import graphql.Types._
+import models.Knowledge
+import models.Knowledge._
+import sangria.macros.derive._
 import security.AppContext
 
 object Types {

@@ -1,11 +1,11 @@
 package graphql.recipe
 
+import graphql.Types._
+import graphql.ingredient.Fetchers._
+import graphql.ingredient.Types._
 import models.Recipe
 import sangria.macros.derive.{Interfaces, ObjectTypeName, ReplaceField, deriveObjectType}
 import sangria.schema.{Field, ListType}
-import graphql.Types._
-import graphql.ingredient.Types._
-import graphql.ingredient.Fetchers._
 import security.AppContext
 
 object Types {

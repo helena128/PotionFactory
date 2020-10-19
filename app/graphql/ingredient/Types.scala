@@ -1,10 +1,10 @@
 package graphql.ingredient
 
+import graphql.Types._
+import graphql.ingredient.Fetchers._
 import models.{Ingredient, IngredientRequest}
 import sangria.macros.derive.{Interfaces, ObjectTypeName, ReplaceField, deriveObjectType}
 import sangria.schema.{Field, ListType}
-import graphql.Types._
-import Fetchers._
 import security.AppContext
 
 object Types {

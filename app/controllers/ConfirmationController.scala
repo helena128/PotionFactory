@@ -1,8 +1,8 @@
 package controllers
 
+import email._
 import javax.inject.{Inject, Singleton}
 import play.api.mvc._
-import email._
 
 @Singleton
 class ConfirmationController @Inject()(mailer: MailService, cc: ControllerComponents) extends AbstractController(cc) {

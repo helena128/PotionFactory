@@ -1,6 +1,6 @@
 package graphql.order
 
-import models.{Ingredient, Order}
+import models.Order
 import sangria.execution.deferred.Fetcher
 import security.AppContext
 

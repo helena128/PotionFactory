@@ -1,19 +1,15 @@
-import java.lang.IllegalArgumentException
-
 import graphql.middleware.AuthMiddleware
 import graphql.middleware.AuthMiddleware.{AuthenticationException, AuthorizationException}
 import play.api.libs.json.{JsObject, JsValue}
-import sangria.execution.{ExceptionHandler, ExecutionScheme, Executor, HandledException}
-import sangria.execution.deferred.{DeferredResolver, Fetcher}
 import sangria.ast.Document
-import sangria.schema.AstSchemaMaterializer
+import sangria.execution.deferred.DeferredResolver
+import sangria.execution.{ExceptionHandler, Executor, HandledException}
+import sangria.marshalling.playJson._
+import sangria.schema.{ObjectType, Schema}
 import security.AppContext
 
-import scala.reflect.ClassTag
-import sangria.schema.{ObjectType, Schema, fields}
-import sangria.marshalling.playJson._
-
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 package object graphql {
   // MAGIC: Sangria can't stitch schemas with same definitions.
@@ -40,9 +36,9 @@ package object graphql {
       (left.toSet ++ right.toSet).toVector
     }
 
-    private def mergeObjectTypeOption(os: ObjectType[A, B]*): Option[ObjectType[A, B]] = {
-      mergeObjectTypeOption(os.toList)
-    }
+//    private def mergeObjectTypeOption(os: ObjectType[A, B]*): Option[ObjectType[A, B]] = {
+//      mergeObjectTypeOption(os.toList)
+//    }
 
     private def mergeObjectTypeOption(os: List[ObjectType[A, B]]): Option[ObjectType[A, B]] = {
       os match {
@@ -117,7 +113,7 @@ package object graphql {
 
   private val Resolver = DeferredResolver.fetchers(fetchers: _*)
   private val ErrorHandler = ExceptionHandler {
-    case (m, AuthenticationException(message)) ⇒ HandledException(message)
-    case (m, AuthorizationException(message)) ⇒ HandledException(message)
+    case (_m@_, AuthenticationException(message)) ⇒ HandledException(message)
+    case (_m@_, AuthorizationException(message)) ⇒ HandledException(message)
   }
 }

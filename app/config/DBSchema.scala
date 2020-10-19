@@ -3,17 +3,13 @@ package config
 import java.io.Serializable
 import java.time.ZonedDateTime
 
-import scala.util.Random
-import repository.DAO
-import slick.jdbc.GetResult
-
-import scala.concurrent.Await
-import scala.reflect.ClassTag
-import slick.jdbc.H2Profile.api._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import utils.Serializer._
 import models._
+import slick.jdbc.GetResult
+import slick.jdbc.H2Profile.api._
+import utils.Serializer._
+
+import scala.reflect.ClassTag
+import scala.util.Random
 
 object DBSchema {
   private def objectMapper[A <: Serializable](implicit tag: ClassTag[A]) =
@@ -183,11 +179,11 @@ object DBSchema {
   private val plantainPotionProd = Product(0, "Plantain potion",
     List("health", "heals"),
     "Extract of plantain", plantainPotion.id,
-    rand.between(1000, 100000), rand.between(1, 5))
+    rand.between(1000, 100000), rand.between(1, 5).toDouble)
   private val superOliveOilProd = Product(1, "Super Olive oil",
     List("smooth skin", "health"),
     "Olive oil enhanced with plantain", superOliveOil.id,
-    rand.between(10, 100), rand.between(5, 10))
+    rand.between(10, 100), rand.between(5, 10).toDouble)
 
   val schema = Seq(
     Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers,

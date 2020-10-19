@@ -1,13 +1,12 @@
 package graphql.product
 
-import graphql.product.Fetchers.productFetcher
 import graphql.Types.IdentifiableWithIntType
-import sangria.macros.derive.{EnumTypeName, IncludeValues, Interfaces, ObjectTypeName, ReplaceField, deriveEnumType, deriveObjectType}
-import sangria.schema.{Field, ListType, StringType}
 import graphql.recipe.Fetchers._
 import graphql.recipe.Types._
-import security.AppContext
 import models._
+import sangria.macros.derive.{Interfaces, ObjectTypeName, ReplaceField, deriveObjectType}
+import sangria.schema.{Field, ListType, StringType}
+import security.AppContext
 
 object Types {
   implicit val ProductType = deriveObjectType[AppContext, Product](

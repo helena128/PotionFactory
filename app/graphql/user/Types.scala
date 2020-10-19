@@ -3,7 +3,7 @@ package graphql.user
 import graphql.Types._
 import models.User
 import models.User._
-import sangria.macros.derive.{EnumTypeName, ExcludeFields, IncludeValues, Interfaces, ObjectTypeDescription, ObjectTypeName, deriveEnumType, deriveObjectType}
+import sangria.macros.derive._
 import security.AppContext
 
 object Types {

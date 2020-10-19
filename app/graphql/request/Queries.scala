@@ -1,9 +1,9 @@
 package graphql.request
 
-import sangria.schema._
 import graphql.Args._
 import graphql.auth.Tags._
-import Types._
+import graphql.request.Types._
+import sangria.schema._
 import security.AppContext
 
 object Queries extends graphql.Queries {

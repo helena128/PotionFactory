@@ -1,9 +1,9 @@
 package graphql.knowledge
 
-import graphql.auth.Tags._
-import Types._
-import sangria.schema.{Argument, Field, IntType, ListType, ObjectType, StringType, fields}
 import graphql.Args._
+import graphql.auth.Tags._
+import graphql.knowledge.Types._
+import sangria.schema.{Argument, Field, IntType, ListType, ObjectType, StringType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {

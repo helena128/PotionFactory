@@ -2,12 +2,11 @@ package graphql.auth
 
 import models.User
 import sangria.execution.FieldTag
-import security.AppContext
 
 object Tags {
   sealed trait RoleTag extends FieldTag {
     def check(u: Option[User]): Boolean
-    def check(u: Option[User], _ctx: AppContext): Boolean = check(u)
+//    def check(u: Option[User], _ctx: AppContext): Boolean = check(u)
   }
 
   case object AuthenticatedTag extends RoleTag {def check(u: Option[User]) = u.nonEmpty}

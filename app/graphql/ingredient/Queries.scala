@@ -1,11 +1,10 @@
 package graphql.ingredient
 
-import graphql.auth.Tags._
-import sangria.schema.{Field, ListType, ObjectType, fields}
-import graphql.Types._
-import Types._
-import Fetchers._
 import graphql.Args._
+import graphql.auth.Tags._
+import graphql.ingredient.Fetchers._
+import graphql.ingredient.Types._
+import sangria.schema.{Field, ListType, ObjectType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {

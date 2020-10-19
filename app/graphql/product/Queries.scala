@@ -1,9 +1,9 @@
 package graphql.product
 
-import sangria.schema.{DeferredValue, Field, ListType, ObjectType, fields}
-import Fetchers._
 import graphql.Args._
+import graphql.product.Fetchers._
 import graphql.product.Types._
+import sangria.schema.{DeferredValue, Field, ListType, ObjectType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {

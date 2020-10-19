@@ -1,16 +1,16 @@
 package repository
 
-import models._
 import java.time.ZonedDateTime
 
-import slick.jdbc.H2Profile.api._
 import config.DBSchema._
+import models._
 import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.GetResult
-
-import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits._
+import slick.jdbc.H2Profile.api._
 import utils.Serializer._
+
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent._
 
 case class DAO(db: Database) {
   def run[R](a: DBIOAction[R, NoStream, Nothing]): Future[R] = db.run(a)
@@ -59,8 +59,11 @@ case class DAO(db: Database) {
   def create(t: ProductTransfer): Future[Int] =
     db run (ProductTransfers.returning(ProductTransfers.map(_.id)) += t)
 
-  def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] =
-    (db run (Sessions += (id, a.serialize))).map(_ > 0)
+  def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] = {
+    val session = (id, a.serialize)
+    (db run (Sessions += session)).map(_ > 0)
+  }
+
   def getSession[T <: Serializable](id: String): Future[Option[T]] =
     (db run
       (Sessions

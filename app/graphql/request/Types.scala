@@ -1,13 +1,11 @@
 package graphql.request
 
 import graphql.Types.IdentifiableWithIntType
-import graphql.product.Fetchers.productFetcher
-import graphql.product.Types.ProductType
-import models.{IngredientRequest, Order}
+import graphql.ingredient.Fetchers._
+import graphql.ingredient.Types._
+import models.IngredientRequest
 import sangria.macros.derive._
 import sangria.schema._
-import graphql.ingredient.Types._
-import graphql.ingredient.Fetchers._
 import security.AppContext
 
 object Types {

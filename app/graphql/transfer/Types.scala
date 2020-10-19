@@ -1,12 +1,12 @@
 package graphql.transfer
 
-import models.ProductTransfer
-import models.ProductTransfer.Status
-import sangria.macros.derive.{EnumTypeName, IncludeValues, Interfaces, ObjectTypeName, ReplaceField, deriveEnumType, deriveObjectType}
-import sangria.schema.{Field, ListType}
 import graphql.Types._
-import graphql.product.Types._
 import graphql.product.Fetchers._
+import graphql.product.Types._
+import models.ProductTransfer
+import models.ProductTransfer._
+import sangria.macros.derive._
+import sangria.schema.{Field, ListType}
 import security.AppContext
 
 object Types {

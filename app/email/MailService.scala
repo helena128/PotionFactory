@@ -1,14 +1,14 @@
 package email
 
-import play.api.libs.mailer._
-import java.io.{BufferedWriter, File, PrintWriter}
+import java.io.{File, PrintWriter}
 
 import email.templates.html.Confirmation
-import org.apache.commons.mail.EmailAttachment
 import javax.inject.Inject
+import play.api.libs.mailer._
 
 class MailService @Inject()(mailerClient: MailerClient) {
-  def sendEmail = {
+  type MessageID = String
+//  def sendEmail() = {
 //    val email = Email(
 //      "Simple email",
 //      "Potions Factory <noreply@potions.ml>",
@@ -26,7 +26,7 @@ class MailService @Inject()(mailerClient: MailerClient) {
 //      bodyHtml = Some(s"""<html><body><p><h1>Hello, World!</h1></p></body></html>""")
 //    )
 //    mailerClient.send(email)
-  }
+//  }
 
   val noreply = "Potions <noreply@potions.ml>"
 
@@ -46,7 +46,7 @@ class MailService @Inject()(mailerClient: MailerClient) {
     )
   }
 
-  private def send(email: Email): Unit = {
+  private def send(email: Email): MessageID = {
     mailerClient.send(email)
   }
 }

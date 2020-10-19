@@ -1,12 +1,10 @@
 package graphql.order
 
 import graphql.Args.IdInt
-import graphql.ingredient.Fetchers.ingredientFetcher
-import graphql.ingredient.Types.IngredientType
-import sangria.schema.{Field, ListType, ObjectType, fields}
-import Fetchers._
 import graphql.auth.Tags.ClientTag
-import Types._
+import graphql.order.Fetchers._
+import graphql.order.Types._
+import sangria.schema.{Field, ObjectType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {

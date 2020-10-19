@@ -1,9 +1,9 @@
 package graphql.recipe
 
-import sangria.schema._
-import Types._
-import Fetchers._
 import graphql.Args._
+import graphql.recipe.Fetchers._
+import graphql.recipe.Types._
+import sangria.schema._
 import security.AppContext
 
 object Queries extends graphql.Queries {

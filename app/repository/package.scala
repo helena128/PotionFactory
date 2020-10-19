@@ -3,8 +3,6 @@ import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits._
-
-import scala.language.postfixOps
 import scala.concurrent.duration._
 
 package object repository {

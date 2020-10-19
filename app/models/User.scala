@@ -2,7 +2,6 @@ package models
 
 import java.io.Serializable
 
-import models.User.Role
 import org.mindrot.jbcrypt.BCrypt
 
 case class User private (id: String,
@@ -71,7 +70,6 @@ object User extends {
 
     def apply(s: String): Status = withName(s)
 
-    import scala.language.implicitConversions
     implicit def fromId(id: Int): Status = apply(id);
     implicit def fromString(s: String): Status = apply(s)
 
@@ -88,7 +86,6 @@ object User extends {
 
     def apply(s: String): Role = withName(s)
 
-    import scala.language.implicitConversions
     implicit def fromId(id: Int): Role = apply(id);
     implicit def fromString(s: String): Role = apply(s)
 

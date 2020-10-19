@@ -1,7 +1,7 @@
 package graphql.user
 
 import graphql.Args._
-import Types._
+import graphql.user.Types._
 import sangria.schema.{Field, ObjectType, OptionType, fields}
 import security.AppContext
 
