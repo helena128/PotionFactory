@@ -1,8 +1,9 @@
 package graphql.user
 
 import graphql.Args._
+import graphql.auth.Tags.AdminTag
 import graphql.user.Types._
-import sangria.schema.{Field, ObjectType, OptionType, fields}
+import sangria.schema.{Field, ListType, ObjectType, OptionType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {
@@ -11,6 +12,11 @@ object Queries extends graphql.Queries {
       Field("user", OptionType(UserType),
         arguments = IdStr :: Nil,
         resolve = c => c.ctx.dao.getUser(c.arg(IdStr)),
-        tags = Nil
-      )))
+        tags = List(AdminTag)
+      ),
+      Field("allUsers", ListType(UserType),
+        resolve = c => c.ctx.dao.getAllUsers(),
+        tags = List(AdminTag)
+      )
+    ))
 }

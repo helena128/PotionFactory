@@ -19,6 +19,7 @@ case class DAO(db: Database) {
   def authenticate(id: String, password: String): Future[Option[User]] =
     (db run Users.filter(_.id === id).result.headOption)
     .map(_.filter(_.hasPassword(password)))
+  def getAllUsers(): Future[Seq[User]] = db run Users.result
 
   implicit val getKnowledge = GetResult(
     r => Knowledge(
