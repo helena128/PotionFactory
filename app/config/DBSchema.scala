@@ -1,40 +1,15 @@
 package config
 
-import java.io.Serializable
 import java.time.ZonedDateTime
+import java.util.UUID
 
 import models._
 import slick.jdbc.GetResult
-import slick.jdbc.H2Profile.api._
-import utils.Serializer._
+import config.PostgresProfile.api._
 
-import scala.reflect.ClassTag
 import scala.util.Random
 
 object DBSchema {
-  private def objectMapper[A <: Serializable](implicit tag: ClassTag[A]) =
-    MappedColumnType.base[A, Array[Byte]](_.serialize, _.deserialize[A])
-
-  //  private val json = new ObjectMapper()
-
-  //  private def json_mapper[A <: Map[B, Any], B <: Any, C <: AnyVal](mapper: B => C) =
-  //    MappedColumnType.base[A, String](
-  //      m => json.writeValueAsString(m map {case (k, v) => k -> v}),
-  //      s => json.readValue[A](s, classOf[A]))
-
-  //  private implicit val IngredientListMapper =
-  //    MappedColumnType.base[Ingredients, Any](
-  //      m => json.writeValueAsString(m map {case (k, v) => k.id -> v}),
-  //      s => json.readValue[Map[Int, Int]](s, classOf[Map[Int, Int]]).map({case (id, count) => })
-  //    )
-  //    json_mapper[Ingredients, Ingredient, Int](_.id)
-  //  private implicit val IngredientListMapper =
-  //    MappedColumnType.base[Ingredients, Any](
-  //      (SerializationUtils.serialize),
-  //      (_.asInstanceOf[Ingredients])
-  //    )
-  //
-
   private val rand = new Random()
 
   implicit class RandomExtended(r: Random) {
@@ -67,8 +42,25 @@ object DBSchema {
   }
   val Users = TableQuery[UserTable]
 
+  implicit val ConfirmationStatusMapper =
+    MappedColumnType.base[AccountConfirmation.Status, String](_.toString, AccountConfirmation.Status.withName)
+  class AccountConfirmationsTable(tag: Tag) extends Table[AccountConfirmation](tag, "ACCOUNT_CONFIRMATIONS") {
+    val id = column[UUID]("ID", O.PrimaryKey)
+    val userId = column[String]("USER_ID")
+    val status = column[AccountConfirmation.Status]("STATUS")
+    val activeUntil = column[ZonedDateTime]("ACTIVE_UNTIL")
+    val createdAt = column[ZonedDateTime]("CREATED_AT")
+    val modifiedAt = column[ZonedDateTime]("MODIFIED_AT")
+
+    val * = (id, userId, status, activeUntil, createdAt, modifiedAt).mapTo[AccountConfirmation]
+
+    val userFK = foreignKey("userIdFK", userId, Users)(_.id)
+  }
+  val AccountConfirmations = TableQuery[AccountConfirmationsTable]
+
   implicit val KnowledgeKindMapper = MappedColumnType.base[Knowledge.Kind, String](_.toString, Knowledge.Kind.withName)
-  class KnowledgeTable(tag: Tag) extends Table[Knowledge](tag, "KNOWLEDGES") {
+  val KnowledgeTable = "KNOWLEDGES"
+  class KnowledgeTable(tag: Tag) extends Table[Knowledge](tag, KnowledgeTable) {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val kind = column[Knowledge.Kind]("KIND")
     val name = column[String]("NAME")
@@ -89,8 +81,6 @@ object DBSchema {
   val Ingredients = TableQuery[IngredientTable]
 
   class IngredientRequestTable(tag: Tag) extends Table[IngredientRequest](tag, "INGREDIENT_REQUESTS") {
-    private implicit val ingredientListMapper = objectMapper[IngredientList]
-
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val ingredients = column[IngredientList]("INGREDIENTS")
     val * = (id, ingredients).mapTo[IngredientRequest]
@@ -98,8 +88,6 @@ object DBSchema {
   val IngredientRequests = TableQuery[IngredientRequestTable]
 
   class RecipeTable(tag: Tag) extends Table[Recipe](tag, "RECIPES") {
-    private implicit val ingredientListMapper = objectMapper[IngredientList]
-
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
     val description = column[String]("DESCRIPTION")
@@ -109,8 +97,6 @@ object DBSchema {
   val Recipes = TableQuery[RecipeTable]
 
   class ProductTable(tag: Tag) extends Table[Product](tag, "PRODUCTS") {
-    private implicit val tagsMapper = objectMapper[ProductTags]
-
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
     val tags = column[ProductTags]("TAGS")
@@ -142,8 +128,6 @@ object DBSchema {
     MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
 
   class ProductTransferTable(tag: Tag) extends Table[ProductTransfer](tag, "PRODUCT_TRANSFERS") {
-    private implicit val productListMapper = objectMapper[ProductList]
-
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val status = column[ProductTransfer.Status]("STATUS")
     val products = column[ProductList]("CONTENTS")
@@ -164,9 +148,8 @@ object DBSchema {
    */
 
   import Knowledge.Kind._
-  import User.Role._
-  private implicit def tupToUser(t: (String, String, String, String, String, String, User.Role)): User =
-    User(t._1, User.hashpw(t._2), t._3, t._4, Option(t._5), Option(t._6), t._7)
+  private implicit def tupToUser(t: (String, String, String, String, String, String, User.Role, User.Status)): User =
+    User(t._1, t._2, t._3, t._4, Option(t._5), Option(t._6), t._7, t._8, isHashedPassword = false)
 
   private val plantain = Ingredient(0, "Plantain", ZonedDateTime.now().minusDays(10), "It heals", rand.between(10, 100))
   private val oliveOil =
@@ -187,23 +170,29 @@ object DBSchema {
 
   val schema = Seq(
     Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers,
-    Sessions)
+    Sessions,
+    AccountConfirmations)
     .map(_.schema)
     .reduce(_ ++ _)
 
   val setup = DBIO.seq(
     schema.createIfNotExists,
 
-    Users forceInsertAll
-      Seq[User](
-        ("admin", "qwerty", "Admin", "good@potions.factory", "555-0000", "Transcendent", Admin),
-        ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy),
-        ("waremgr", "qwerty", "Warehouse Manager", "warehouse@potions.factory", "555-1111", "Potions Factory", WarehouseManager),
-        ("workmgr", "qwerty", "Workshop Manager", "workshop@potions.factory", "555-2222", "Potions Factory", WorkshopManager),
-        ("client", "qwerty", "John Doe", "johndoe@example.com", "555-5555", "Bottom of the ocean", Client),
-        ("workworker", "qwerty", "Dollar Mitch", "mitch@potions.factory", "555-8888", "Potions Factory", WorkshopWorker),
-        ("wareworker", "qwerty", "Sixteen Joe", "joe@potions.factory", "555-9999", "Potions Factory", WorkshopWorker)
-      ),
+    {
+      import User.Role._
+      import User.Status._
+
+      Users forceInsertAll
+        Seq[User](
+          ("admin", "qwerty", "Admin", "good@potions.factory", "555-0000", "Transcendent", Admin, Active),
+          ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy, Active),
+          ("waremgr", "qwerty", "Warehouse Manager", "warehouse@potions.factory", "555-1111", "Potions Factory", WarehouseManager, Active),
+          ("workmgr", "qwerty", "Workshop Manager", "workshop@potions.factory", "555-2222", "Potions Factory", WorkshopManager, Active),
+          ("client", "qwerty", "John Doe", "johndoe@example.com", "555-5555", "Bottom of the ocean", Client, Active),
+          ("workworker", "qwerty", "Dollar Mitch", "mitch@potions.factory", "555-8888", "Potions Factory", WorkshopWorker, Active),
+          ("wareworker", "qwerty", "Sixteen Joe", "joe@potions.factory", "555-9999", "Potions Factory", WorkshopWorker, Active)
+        )
+    },
 
     Knowledges forceInsertAll Seq(
       (0, Gossip, "Somebody told me", ZonedDateTime.now().minusDays(7),
@@ -243,6 +232,8 @@ object DBSchema {
       (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id)),
       (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id)),
     ).map(ProductTransfer.tupled),
+
+
   )
 
   implicit val getSearchKnowledgeResult =

@@ -1,8 +1,8 @@
-@(name: String, confirmationId: String)
+@(user: User, confirmation: AccountConfirmation)
 @import play.twirl.api.HtmlFormat.escape
 @baseUrl = @{config.WebConfig.baseUrl}
 @url(url: String) = @{baseUrl + "/" + url}
-@confirmationUrl = @{url("/confirm/"+confirmationId)}
+@confirmationUrl = @{url("/confirm/"+confirmation.id)}
 
 <html>
   <head>
@@ -196,7 +196,7 @@
                                                                   <tr>
                                                                     <td>
                                                                       <div class="text-center" style="color:#605F5D; font-family: Arial,sans-serif; font-size:18px; line-height:32px; text-align:left">
-                                                                        @escape(name), You’re well on your way to setting up your Potions account. We just need to verify your email. Click the button below to let us know this is really you.</div>
+                                                                        @escape(user.name), You’re well on your way to setting up your Potions account. We just need to verify your email. Click the button below to let us know this is really you.</div>
                                                                     </td>
                                                                   </tr>
                                                                 </tbody>

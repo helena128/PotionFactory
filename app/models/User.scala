@@ -13,8 +13,9 @@ case class User private (id: String,
                  role: User.Role,
                  status: User.Status
                ) extends Identifiable[String] with Serializable {
-
-  def hasPassword(s: String): Boolean = User.checkpw(s, password)
+  def hasPassword(s: String): Boolean = {
+    User.checkpw(s, password)
+  }
 
   def isClient: Boolean = role == User.Role.Client
   def isFairy: Boolean = role == User.Role.Fairy
@@ -42,6 +43,18 @@ object User extends {
     new User(id, hashedPassword, name, email, phone, address, role, status)
   }
 
+  def newUser(id: String,
+              password: String,
+              name: String,
+              email: String,
+              phone: Option[String],
+              address: Option[String]): User = {
+    new User(id, hashpw(password),
+      name,
+      email, phone, address,
+      User.Role.Client, User.Status.Verification)
+  }
+
   val hashedTupled =
     (t: (String, String, String, String, Option[String], Option[String], User.Role, User.Status)) =>
       new User(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8)
@@ -55,7 +68,7 @@ object User extends {
   case class Credentials private (id: String, password: String)
   object Credentials {
     def apply(id: String, password: String): Credentials = {
-      new Credentials(id, hashpw(password))
+      new Credentials(id, password)
     }
   }
 

@@ -1,12 +1,14 @@
 package repository
 
 import java.time.ZonedDateTime
+import java.util.UUID
 
 import config.DBSchema._
+import config.PostgresProfile
 import models._
 import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.GetResult
-import slick.jdbc.H2Profile.api._
+import config.PostgresProfile.api._
 import utils.Serializer._
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -24,15 +26,15 @@ case class DAO(db: Database) {
   implicit val getKnowledge = GetResult(
     r => Knowledge(
       r.nextInt(), Knowledge.Kind(r.nextString()),
-      r.nextString(), ZonedDateTime.parse(r.nextString()), r.nextString()))
+      r.nextString(), ZonedDateTime.parse(r.nextString(), PostgresProfile.api.date2TzDateTimeFormatter), r.nextString()))
 
   def searchKnowledge(s: String, limit: Int, lookaround: Int): Future[Seq[Knowledge]] =
     (db run
         sql"""
-              select id, kind, name, added_at,
-              substring(content from greatest(0, (position($s in content)-$lookaround)) for ${2*lookaround})
-              from knowledges
-              where position($s in content) != 0
+              select "ID", "KIND", "NAME", "ADDED_AT",
+              substring("CONTENT" from greatest(0, (position($s in "CONTENT")-$lookaround)) for ${2*lookaround})
+              from postgres."public"."KNOWLEDGES"
+              where position($s in "CONTENT") != 0
               limit $limit
               """
       .as[Knowledge])
@@ -53,8 +55,15 @@ case class DAO(db: Database) {
 
   def getIngredientRequest(id: Int): Future[IngredientRequest] = db run IngredientRequests.filter(_.id === id).result.head
 
-  def create(u: User): Future[String] = db run (Users.returning(Users.map(_.id)) += u)
-  def create(o: Order): Future[Int] = db run (Orders.returning(Orders.map(_.id)) += o)
+  def create(u: User): Future[User] = {
+    println("Creating " + u)
+    db run (Users.returning(Users.map(identity)) += u)
+  }
+
+  def create(c: AccountConfirmation): Future[AccountConfirmation] =
+    db run (AccountConfirmations.returning(AccountConfirmations.map(identity)) += c)
+  def create(o: Order): Future[Int] =
+    db run (Orders.returning(Orders.map(_.id)) += o)
   def create(req: IngredientRequest): Future[Int] =
     db run (IngredientRequests.returning(IngredientRequests.map(_.id)) += req)
   def create(t: ProductTransfer): Future[Int] =
@@ -76,6 +85,25 @@ case class DAO(db: Database) {
   def isSessionActive(id: String): Future[Boolean] = db run Sessions.filter(_.id === id).exists.result
   def listSessions(): Future[Seq[(String, Array[Byte])]] = db run Sessions.map(r => (r.id, r.content)).result
   def deleteSession(id: String): Future[Boolean] = (db run Sessions.filter(_.id === id).delete).map(_ > 0)
+
+  def confirm(id: UUID): Future[Option[User]] =
+    db run AccountConfirmations
+      .filter(c => c.id === id && c.activeUntil <= ZonedDateTime.now())
+      .map(_.status)
+      .update(AccountConfirmation.Status.Fulfilled)
+      .map(_ == 0)
+      .flatMap {
+        case false => DBIOAction.from(Future(Option.empty[User]))
+        case true =>
+          DBIOAction.from(
+            db.run(
+              (AccountConfirmations.join(Users).on(_.userId === _.id)
+                .filter(_._1.id === id)
+                .map(_._2)
+                .result
+                .headOption)))
+      }
+      .transactionally
 }
 
 //object DAO {

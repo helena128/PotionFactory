@@ -1,0 +1,11 @@
+version: "3.0"
+
+services:
+  postgres:
+    image: library/postgres:9.6.19
+    restart: always
+    container_name: potions_postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 55432:5432

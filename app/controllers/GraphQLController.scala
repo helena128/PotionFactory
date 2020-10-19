@@ -2,6 +2,7 @@ package controllers
 
 import java.util.UUID
 
+import email.MailService
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
@@ -16,7 +17,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 @Singleton
-class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class GraphQLController @Inject()(cc: ControllerComponents, mailer: MailService) extends AbstractController(cc) {
   private val renderedSchema = graphql.schema.renderPretty
 
   val schema: Action[AnyContent] = Action { Ok(renderedSchema) }
@@ -51,7 +52,7 @@ class GraphQLController @Inject()(cc: ControllerComponents) extends AbstractCont
       QueryParser
         .parse(query)
         .map(
-          graphql.execute(_, operation, variables, AppContext(sessionId, dao))
+          graphql.execute(_, operation, variables, AppContext(sessionId, dao, mailer))
           .map(Ok(_).withSession(session))
           .recover {
             case error: QueryAnalysisError ⇒ BadRequest(error.resolveError)

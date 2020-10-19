@@ -1,9 +1,10 @@
 package email
 
-import java.io.{File, PrintWriter}
+//import java.io.{File, PrintWriter}
 
-import email.templates.html.Confirmation
+import email.templates.html._
 import javax.inject.Inject
+import models.{AccountConfirmation, User}
 import play.api.libs.mailer._
 
 class MailService @Inject()(mailerClient: MailerClient) {
@@ -30,18 +31,30 @@ class MailService @Inject()(mailerClient: MailerClient) {
 
   val noreply = "Potions <noreply@potions.ml>"
 
-  def sendConfirmation(name: String, email: String, confirmId: String) = {
+  def sendConfirmation(user: User, confirmation: AccountConfirmation): MessageID = {
 //    println()
-    val filename = "/tmp/test.html"
-    new PrintWriter((new File(filename))).write(Confirmation(name, confirmId).body)
+//    val filename = "/tmp/test.html"
+//    new PrintWriter((new File(filename))).write(Confirmation(user, confirmation).body)
 //    sys.process.Process("open", Seq(filename))!
 
+    println("Sending confirmation to " + user)
     send(
       Email(
         "Confirm your account",
         noreply,
-        Seq(email),
-        bodyHtml = Some(Confirmation(name, confirmId).body)
+        Seq(user.email),
+        bodyHtml = Some(Confirmation(user, confirmation).body)
+      )
+    )
+  }
+
+  def sendWelcome(user: User): MessageID = {
+    send(
+      Email(
+        "Welcome to Potions",
+        noreply,
+        Seq(user.email),
+        bodyHtml = Some(Welcome(user).body)
       )
     )
   }

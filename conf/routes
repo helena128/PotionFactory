@@ -7,6 +7,7 @@ GET     /                           controllers.FrontendController.index()
 
 + nocsrf
 POST    /test                       controllers.ConfirmationController.send
+GET     /confirm/:id                controllers.ConfirmationController.confirm(id)
 
 GET     /graphql/schema             controllers.GraphQLController.schema
 
