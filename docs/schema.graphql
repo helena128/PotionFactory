@@ -1,0 +1,127 @@
+input Credentials {
+  id: String!
+  password: String!
+}
+
+"Entity that can be identified with Integer"
+interface IdentifiableWithInt {
+  id: Int!
+}
+
+"Entity that can be identified with String"
+interface IdentifiableWithString {
+  id: String!
+}
+
+type Ingredient implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  addedAt: ZonedDateTime!
+  description: String!
+  count: Int!
+}
+
+type IngredientRequest implements IdentifiableWithInt {
+  id: Int!
+  ingredients: [Ingredient!]!
+}
+
+type Knowledge implements IdentifiableWithInt {
+  id: Int!
+  kind: KnowledgeKind!
+  name: String!
+  addedAt: ZonedDateTime!
+  content: String!
+}
+
+enum KnowledgeKind {
+  Fable
+  Myth
+  Book
+  Gossip
+}
+
+"Schema Mutations"
+type Mutation {
+  login(credentials: Credentials!): User
+  logout: Boolean!
+  createOrder(order: OrderArg!): Int!
+  requestIngredient(request: RequestArg!): Int!
+}
+
+type Order implements IdentifiableWithInt {
+  id: Int!
+  count: Int!
+  orderedBy: String!
+  product: Product!
+}
+
+input OrderArg {
+  product: Int!
+  count: Int!
+  orderedBy: String!
+}
+
+type Product implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  description: String!
+  count: Int!
+  basePrice: Float!
+  tags: [String!]!
+  recipe: Recipe!
+}
+
+"Schema Queries"
+type Query {
+  allIngredients: [Ingredient!]!
+  order(id: Int!): Order!
+  recipe(id: Int!): Recipe!
+  loggedIn: Boolean!
+  ingredient(id: Int!): Ingredient!
+  allProducts: [Product!]!
+  currentUser: User
+  getKnowledge(id: Int!): Knowledge!
+  user(id: String!): User
+  product(id: Int!): Product!
+  searchKnowledge(string: String!, limit: Int!, lookaround: Int!): [Knowledge!]!
+  request(id: Int!): IngredientRequest!
+}
+
+type Recipe implements IdentifiableWithInt {
+  id: Int!
+  name: String!
+  description: String!
+  ingredients: [Ingredient!]!
+}
+
+input RequestArg {
+  ingredients: [Int!]!
+}
+
+"User account and info"
+type User implements IdentifiableWithString {
+  id: String!
+  name: String!
+  email: String!
+  phone: String
+  address: String
+  role: UserRole!
+  status: UserStatus!
+}
+
+enum UserRole {
+  WarehouseManager
+  WorkshopManager
+  Fairy
+  Client
+  Admin
+}
+
+enum UserStatus {
+  Deactivated
+  Active
+  Verification
+}
+
+scalar ZonedDateTime
