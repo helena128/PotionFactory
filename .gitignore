@@ -11,4 +11,4 @@ target
 /public
 secrets.sh
 *.log
-
+*.sc
