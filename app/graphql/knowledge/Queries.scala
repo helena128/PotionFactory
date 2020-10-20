@@ -11,14 +11,16 @@ object Queries extends graphql.Queries {
   val SearchLimit = Argument("limit", IntType)
   val SearchLookaround = Argument("lookaround", IntType)
 
+  private val tags = List(FairyTag)
+
   val queries = ObjectType("KnowledgeQuery", "Knowledge Queries",
     fields[AppContext, Unit](
       Field("searchKnowledge", ListType(KnowledgeType),
         arguments = SearchString :: SearchLimit :: SearchLookaround :: Nil,
         resolve = c => c.ctx.dao.searchKnowledge(c.arg(SearchString), c.arg(SearchLimit), c.arg(SearchLookaround)),
-        tags = FairyTag :: Nil),
+        tags = tags),
       Field("getKnowledge", KnowledgeType,
         arguments = IdInt :: Nil,
         resolve = c => c.ctx.dao.getKnowledge(c.arg(IdInt)),
-        tags = FairyTag :: Nil)))
+        tags = tags)))
 }

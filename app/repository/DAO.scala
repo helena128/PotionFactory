@@ -23,7 +23,7 @@ case class DAO(db: Database) {
     .map(_.filter(_.hasPassword(password)))
   def getAllUsers(): Future[Seq[User]] = db run Users.result
 
-  implicit val getKnowledge = GetResult(
+  implicit val getKnowledge: GetResult[Knowledge] = GetResult(
     r => Knowledge(
       r.nextInt(), Knowledge.Kind(r.nextString()),
       r.nextString(), ZonedDateTime.parse(r.nextString(), PostgresProfile.api.date2TzDateTimeFormatter), r.nextString()))
@@ -42,6 +42,9 @@ case class DAO(db: Database) {
 
   def getRecipe(id: Int): Future[Recipe] = db run Recipes.filter(_.id === id).result.head
   def getRecipes(ids: Seq[Int]): Future[Seq[Recipe]] = db run Recipes.filter(_.id inSet ids).result
+  def getAllRecipes(): Future[Seq[Recipe]] = db run Recipes.result
+  def createRecipe(recipe: Recipe): Future[Recipe] =
+    db run (Recipes.returning(Recipes.map(_.id)) += recipe).map(id => recipe.copy(id = id))
 
   def getIngredients(ids: Seq[Int]): Future[Seq[Ingredient]] = db run Ingredients.filter(_.id inSet ids).result
   def getAllIngredients: Future[Seq[Ingredient]] = db run Ingredients.result
@@ -50,10 +53,15 @@ case class DAO(db: Database) {
   def getAllProducts: Future[Seq[Product]] = db run Products.result
 
   def getOrders(ids: Seq[Int]): Future[Seq[Order]] = db run Orders.filter(_.id inSet ids).result
+  def getUserOrders(id: String): Future[Seq[Order]] = db run Orders.filter(_.orderedBy === id).result
 
   def getProductTransfer(id: Int): Future[ProductTransfer] = db run ProductTransfers.filter(_.id === id).result.head
+  def changeProductTransferStatus(id: Int, status: ProductTransfer.Status): Future[Boolean] =
+    db run ProductTransfers.filter(_.id === id).map(_.status).update(status).map(_ > 0)
 
   def getIngredientRequest(id: Int): Future[IngredientRequest] = db run IngredientRequests.filter(_.id === id).result.head
+  def changeIngredientRequestStatus(id: Int, status: IngredientRequest.Status): Future[Boolean] =
+    db run IngredientRequests.filter(_.id === id).map(_.status).update(status).map(_ > 0)
 
   def create(u: User): Future[User] = {
     println("Creating " + u)
@@ -68,6 +76,14 @@ case class DAO(db: Database) {
     db run (IngredientRequests.returning(IngredientRequests.map(_.id)) += req)
   def create(t: ProductTransfer): Future[Int] =
     db run (ProductTransfers.returning(ProductTransfers.map(_.id)) += t)
+
+  def update(user: User): Future[Option[User]] =
+    db run Users
+      .filter(_.id === user.id).update(user)
+      .map(c => if (c > 0) Some(user) else None)
+
+  def deactivateUser(userId: String): Future[Boolean] =
+    db run Users.filter(_.id === userId).map(_.status).update(User.Status.Deactivated).map(_ > 0)
 
   def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] = {
     val session = (id, a.serialize)

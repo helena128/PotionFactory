@@ -3,9 +3,10 @@ package config
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import models._
-import slick.jdbc.GetResult
+import models.{IngredientRequest, ProductTransfer, _}
+import slick.jdbc.{GetResult, JdbcType}
 import config.PostgresProfile.api._
+import slick.ast.BaseTypedType
 
 import scala.util.Random
 
@@ -82,10 +83,15 @@ object DBSchema {
   }
   val Ingredients = TableQuery[IngredientTable]
 
+  implicit val IngredientRequestStatusMapper
+  : JdbcType[IngredientRequest.Status] with BaseTypedType[IngredientRequest.Status]
+  = MappedColumnType.base[IngredientRequest.Status, String](_.toString, IngredientRequest.Status.withName)
+
   class IngredientRequestTable(tag: Tag) extends Table[IngredientRequest](tag, "INGREDIENT_REQUESTS") {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val status = column[IngredientRequest.Status]("STATUS")
     val ingredients = column[IngredientList]("INGREDIENTS")
-    val * = (id, ingredients).mapTo[IngredientRequest]
+    val * = (id, status, ingredients).mapTo[IngredientRequest]
   }
   val IngredientRequests = TableQuery[IngredientRequestTable]
 
@@ -112,7 +118,7 @@ object DBSchema {
   }
   val Products = TableQuery[ProductTable]
 
-  class OrderTable(tag: Tag) extends Table[Order](tag, "ORDER") {
+  class OrderTable(tag: Tag) extends Table[Order](tag, "ORDERS") {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     val content = column[Int]("CONTENT")
     val count = column[Int]("COUNT")
@@ -124,8 +130,9 @@ object DBSchema {
   }
   val Orders = TableQuery[OrderTable]
 
-  private implicit val ProductTransferStatusMapper =
-    MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
+  implicit val ProductTransferStatusMapper:
+    JdbcType[ProductTransfer.Status] with BaseTypedType[ProductTransfer.Status]
+  = MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
 
   class ProductTransferTable(tag: Tag) extends Table[ProductTransfer](tag, "PRODUCT_TRANSFERS") {
     val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
@@ -176,13 +183,13 @@ object DBSchema {
     .reduce(_ ++ _)
 
   val setup = DBIO.seq(
-    schema.createIfNotExists,
+    schema.create,
 
     {
       import User.Role._
       import User.Status._
 
-      Users forceInsertAll
+      Users insertOrUpdateAll
         Seq[User](
           ("admin", "qwerty", "Admin", "good@potions.factory", "555-0000", "Transcendent", Admin, Active),
           ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy, Active),
@@ -194,7 +201,7 @@ object DBSchema {
         )
     },
 
-    Knowledges forceInsertAll Seq(
+    Knowledges insertOrUpdateAll Seq(
       (0, Gossip, "Somebody told me", ZonedDateTime.now().minusDays(7),
         "I've heard that if you mix cucumber with milk it can help your digestion"),
       (1, Book, "THE BOOK OF GENESIS", ZonedDateTime.now().minusYears(930),
@@ -215,27 +222,34 @@ object DBSchema {
         """.trim().replaceAll("\\s+", " "))
     ).map(Knowledge.tupled),
 
-    Ingredients forceInsertAll Seq(plantain, oliveOil, parrotsHorn),
+    Ingredients insertOrUpdateAll Seq(plantain, oliveOil, parrotsHorn),
 
-    IngredientRequests forceInsertAll Seq(
-      (0, List.fill(10)(plantain.id) ++ List.fill(20)(oliveOil.id) ++ List.fill(50)(parrotsHorn.id))
-    ).map(IngredientRequest.tupled),
+    {
+      import IngredientRequest.Status._
 
-    Recipes forceInsertAll Seq(plantainPotion, superOliveOil),
+      IngredientRequests insertOrUpdateAll Seq(
+        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id)),
+        (1, Open, List.fill(10)(plantain.id) ++ List.fill(4)(oliveOil.id) ++ List.fill(2)(parrotsHorn.id)),
+        (2, Transfer, List.fill(2)(plantain.id) ++ List.fill(10)(oliveOil.id) ++ List.fill(34)(parrotsHorn.id)),
+        (3, Transfer, List.fill(7)(plantain.id) ++ List.fill(133)(oliveOil.id) ++ List.fill(28)(parrotsHorn.id)),
+        (4, Received, List.fill(12)(plantain.id) ++ List.fill(84)(oliveOil.id) ++ List.fill(12)(parrotsHorn.id)),
+        (5, Received, List.fill(53)(plantain.id) ++ List.fill(16)(oliveOil.id) ++ List.fill(13)(parrotsHorn.id))
+      ).map(IngredientRequest.tupled)
+    },
 
-    Products forceInsertAll Seq(plantainPotionProd, superOliveOilProd),
+    Recipes insertOrUpdateAll Seq(plantainPotion, superOliveOil),
 
-    Orders forceInsertAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
+    Products insertOrUpdateAll Seq(plantainPotionProd, superOliveOilProd),
 
-    ProductTransfers forceInsertAll Seq(
+    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
+
+    ProductTransfers insertOrUpdateAll Seq(
       (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id)),
       (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id)),
       (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id)),
     ).map(ProductTransfer.tupled),
-
-
   )
 
-  implicit val getSearchKnowledgeResult =
+  implicit val getSearchKnowledgeResult: GetResult[Seq[String]] =
     GetResult[Seq[String]](_.nextObject().asInstanceOf[Seq[String]])
 }

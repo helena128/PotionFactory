@@ -12,7 +12,9 @@ object ProductTransfer {
   object Status extends Enumeration {
     protected final case class Val(override val id: Int, name: String)
       extends super.Val(id)
-        with Identifiable[Int]
+        with Identifiable[Int] {
+      override def toString(): String = name
+    }
 
     val Produced = Val(0, "produced")
     val Transfer = Val(1, "transfer")
