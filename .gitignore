@@ -10,4 +10,5 @@ target
 /RUNNING_PID
 /public
 secrets.sh
+*.log
 
