@@ -87,7 +87,7 @@ case class DAO(db: Database) {
 
   def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] = {
     val session = (id, a.serialize)
-    (db run (Sessions += session)).map(_ > 0)
+    (db run (Sessions.insertOrUpdate(session))).map(_ > 0)
   }
 
   def getSession[T <: Serializable](id: String): Future[Option[T]] =

@@ -78,8 +78,7 @@ object Mutations extends graphql.Mutations {
           UpdateCtx(c.ctx.login(c.arg(ACredentials))){
             case Some(user) => c.ctx.copy(currentUser = Some(user))
             case None => c.ctx
-          },
-        tags = NotAuthenticatedTag :: Nil
+          }
       ),
       Field("logout",
         BooleanType,
