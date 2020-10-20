@@ -1,31 +1,84 @@
-name := """potion-factory"""
-version := "1.0-SNAPSHOT"
+/** Project Info */
+name := "potion-factory"
+version := "1.1"
 organization := "com.github.helena128"
-maintainer := "Yaroslav Rogov, Elena Cheprasova, Ilya Pnachin"
+maintainer := Seq("Yaroslav Rogov", "Elena Cheprasova", "Ilya Pnachin").mkString(", ")
 
+/** Deps */
+resolvers += Resolver.sonatypeRepo("snapshots")
+
+libraryDependencies ++= Seq(
+  guice,
+  "com.typesafe.play" %% "play-json" % "2.8.1",
+
+  "com.typesafe.slick" %% "slick" % "3.3.3",
+  "com.github.tminglei" %% "slick-pg" % "0.19.3",
+  "com.github.tminglei" %% "slick-pg_play-json" % "0.19.3",
+
+  "org.sangria-graphql" %% "sangria" % "1.4.2",
+  "org.sangria-graphql" %% "sangria-play-json" % "1.0.5",
+
+  "org.mindrot" % "jbcrypt" % "0.3m",
+
+  "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test,
+
+  "com.typesafe.play" %% "play-mailer" % "8.+",
+  "com.typesafe.play" %% "play-mailer-guice" % "8.+",
+
+  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.1" cross CrossVersion.full)
+)
+
+
+/** Project Settings*/
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala, GraphQLSchemaPlugin)
+  .settings(
+    watchSources ++= (baseDirectory.value / "ui/src" ** "*").get,
+  )
 
+
+/** Extra tasks */
 graphqlSchemaSnippet := "graphql.schema"
 target in graphqlSchemaGen := new File("./docs")
 
 val reloadSchema: TaskKey[Unit] =
   taskKey[Unit]("Reload graphql schema generated from Scala sources and generate TS types from it")
-
 reloadSchema := {
   graphqlSchemaGen.value
   scala.sys.process.Process("node_modules/@graphql-codegen/cli/bin.js", new File("./ui")) !
 }
+//run := (run dependsOn reloadSchema).value
+//assembly := (assembly dependsOn reloadSchema).value
 
-lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, GraphQLSchemaPlugin)
-//  .disablePlugins(PlayLayoutPlugin)
-  .settings(
-    watchSources ++= (baseDirectory.value / "ui/src" ** "*").get,
-  )
+/** Fat JAR setup */
+assemblyOutputPath := file(".")
+assemblyJarName := f"${organization.value}.${name.value}-${version.value}.jar"
+mainClass in assembly := Some("play.core.server.ProdServerStart")
+fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
 
-resolvers += Resolver.sonatypeRepo("snapshots")
+assemblyMergeStrategy in assembly := {
+  case manifest if manifest.contains("MANIFEST.MF") =>
+    // We don't need manifest files since sbt-assembly will create
+    // one with the given settings
+    MergeStrategy.discard
+  case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>
+    // Keep the content for all reference-overrides.conf files
+    MergeStrategy.concat
+  case jackson if jackson.contains("module-info.class") =>
+    MergeStrategy.last
+  case jakarta if ("jakarta|javax".r).findFirstIn(jakarta).nonEmpty =>
+    MergeStrategy.last
+  case x =>
+    // For all the other files, use the default sbt-assembly merge strategy
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
 
+
+/** Compile options */
 scalaVersion := "2.12.11"
 scalacOptions ++= Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
@@ -80,66 +133,3 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
-
-libraryDependencies ++= Seq(
-  guice,
-  "com.typesafe.play" %% "play-json" % "2.8.1",
-
-  "com.typesafe.slick" %% "slick" % "3.3.3",
-  "com.github.tminglei" %% "slick-pg" % "0.19.3",
-  "com.github.tminglei" %% "slick-pg_play-json" % "0.19.3",
-
-  "org.sangria-graphql" %% "sangria" % "1.4.2",
-  "org.sangria-graphql" %% "sangria-play-json" % "1.0.5",
-
-  "org.mindrot" % "jbcrypt" % "0.3m",
-
-  "com.typesafe.slick" %% "slick-hikaricp" % "3.3.3",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test,
-
-  "com.typesafe.play" %% "play-mailer" % "8.+",
-  "com.typesafe.play" %% "play-mailer-guice" % "8.+",
-
-  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.1" cross CrossVersion.full)
-)
-
-
-
-//lazy val dist = (project in file("."))
-//  .enablePlugins(PlayScala)
-//  .enablePlugins(JavaAppPackaging)
-//  .settings(
-//    watchSources ++= (baseDirectory.value / "ui/src" ** "*").get,
-    //    exportJars := true,
-    //
-    //    artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
-    //      artifact.name + "-" + module.revision + "." + artifact.extension
-    //    },
-    //    Compile / packageDoc / publishArtifact := false,
-    //    Compile / packageSrc / publishArtifact := false,
-    //    Compile / packageBin / artifact := {
-    //      val prev: Artifact = (Compile / packageBin / artifact).value
-    //      prev.withType("bundle")
-    //    }
-//  )
-//lazy val root = (project in file("."))
-//  .enablePlugins(PlayScala)
-//  .settings(
-//    watchSources ++= (baseDirectory.value / "ui/src" ** "*").get
-//)
-//
-//lazy val dist = root
-//    .enablePlugins(JavaAppPackaging)
-//    .settings(
-//      exportJars := true,
-//
-//      artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
-//        artifact.name + "-" + module.revision + "." + artifact.extension
-//      },
-//      Compile / packageDoc / publishArtifact := false,
-//      Compile / packageSrc / publishArtifact := false,
-//      Compile / packageBin / artifact := {
-//        val prev: Artifact = (Compile / packageBin / artifact).value
-//        prev.withType("bundle")
-//      }
-//    )

@@ -23,7 +23,14 @@ type Ingredient implements IdentifiableWithInt {
 
 type IngredientRequest implements IdentifiableWithInt {
   id: Int!
+  status: IngredientRequestStatus!
   ingredients: [Ingredient!]!
+}
+
+enum IngredientRequestStatus {
+  Received
+  Transfer
+  Open
 }
 
 type Knowledge implements IdentifiableWithInt {
@@ -46,8 +53,15 @@ type Mutation {
   signup(user: user!): User!
   login(credentials: Credentials!): User
   logout: Boolean!
+  createUser(user: user!): User!
+  updateUser(user: user!): User
+  updateUserSelf(user: UserChange!): User!
+  deactivateUser(userId: String!): Boolean!
   createOrder(order: OrderArg!): Int!
+  createRecipe(recipe: RecipeArg!): Recipe!
   requestIngredient(request: RequestArg!): Int!
+  transferIngredients(requestId: Int!): Boolean!
+  receiveIngredients(requestId: Int!): Boolean!
 }
 
 type Order implements IdentifiableWithInt {
@@ -84,9 +98,11 @@ type Query {
   searchKnowledge(string: String!, limit: Int!, lookaround: Int!): [Knowledge!]!
   getKnowledge(id: Int!): Knowledge!
   order(id: Int!): Order!
+  orders: [Order!]!
   product(id: Int!): Product!
   allProducts: [Product!]!
   recipe(id: Int!): Recipe!
+  allRecipes: [Recipe!]!
   request(id: Int!): IngredientRequest!
 }
 
@@ -95,6 +111,12 @@ type Recipe implements IdentifiableWithInt {
   name: String!
   description: String!
   ingredients: [Ingredient!]!
+}
+
+input RecipeArg {
+  name: String!
+  description: String!
+  ingredients: [Int!]!
 }
 
 input RequestArg {
@@ -110,6 +132,14 @@ type User implements IdentifiableWithString {
   address: String
   role: UserRole!
   status: UserStatus!
+}
+
+input UserChange {
+  password: String
+  name: String
+  email: String
+  phone: String
+  address: String
 }
 
 enum UserRole {
