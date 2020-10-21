@@ -17,7 +17,7 @@ import scala.concurrent._
 import scala.util.matching.Regex.Groups
 
 case class DAO(db: Database) {
-  val parseConstraintViolation: PartialFunction[Throwable, Future[Option[User]]] = {
+  def handleConstraintViolation[R]: PartialFunction[Throwable, Future[R]] = {
     case ex: PSQLException =>
       val msg = ex.getMessage()
       val regex =
@@ -33,13 +33,24 @@ case class DAO(db: Database) {
       throw e
   }
 
-  def run[R](a: DBIOAction[R, NoStream, Nothing]): Future[R] = db.run(a)
+  def run[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] = dbrun(action)
+  private def dbrun[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] =
+    db.run(action).recoverWith(handleConstraintViolation)
+  private implicit class DBIOToFuture[R](action: DBIOAction[R, NoStream, Nothing]) {
+    def run(): Future[R] = dbrun(action).recoverWith(handleConstraintViolation)
+  }
+  private implicit def runDBIO[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] = dbrun(action)
 
-  def getUser(id: String): Future[User] = db run Users.filter(_.id === id).result.head
-  def authenticate(id: String, password: String): Future[Option[User]] =
-    (db run Users.filter(_.id === id).result.headOption)
-    .map(_.filter(_.hasPassword(password)))
-  def getAllUsers(): Future[Seq[User]] = db run Users.result
+  def getUser(id: String): Future[User] = Users.filter(_.id === id).result.head
+  def authenticate(id: String, password: String): Future[Option[User]] = {
+    Users
+      .filter(_.id === id)
+      .result.headOption
+      .run()
+      .map(_.filter(_.hasPassword(password)))
+  }
+
+  def getAllUsers(): Future[Seq[User]] = Users.result
 
   implicit val getKnowledge: GetResult[Knowledge] = GetResult(
     r => Knowledge(
@@ -47,81 +58,84 @@ case class DAO(db: Database) {
       r.nextString(), ZonedDateTime.parse(r.nextString(), PostgresProfile.api.date2TzDateTimeFormatter), r.nextString()))
 
   def searchKnowledge(s: String, limit: Int, lookaround: Int): Future[Seq[Knowledge]] =
-    (db run
-        sql"""
-              select "ID", "KIND", "NAME", "ADDED_AT",
-              substring("CONTENT" from greatest(0, (position($s in "CONTENT")-$lookaround)) for ${2*lookaround})
-              from postgres."public"."KNOWLEDGES"
-              where position($s in "CONTENT") != 0
-              limit $limit
-              """
-      .as[Knowledge])
-  def getKnowledge(id: Int): Future[Knowledge] = db run Knowledges.filter(_.id === id).result.head
+      sql"""
+            select "ID", "KIND", "NAME", "ADDED_AT",
+            substring("CONTENT" from greatest(0, (position($s in "CONTENT")-$lookaround)) for ${2*lookaround})
+            from postgres."public"."KNOWLEDGES"
+            where position($s in "CONTENT") != 0
+            limit $limit
+            """
+    .as[Knowledge]
+  def getKnowledge(id: Int): Future[Knowledge] = Knowledges.filter(_.id === id).result.head
 
-  def getRecipe(id: Int): Future[Recipe] = db run Recipes.filter(_.id === id).result.head
-  def getRecipes(ids: Seq[Int]): Future[Seq[Recipe]] = db run Recipes.filter(_.id inSet ids).result
-  def getAllRecipes(): Future[Seq[Recipe]] = db run Recipes.result
+  def getRecipe(id: Int): Future[Recipe] = Recipes.filter(_.id === id).result.head
+  def getRecipes(ids: Seq[Int]): Future[Seq[Recipe]] = Recipes.filter(_.id inSet ids).result
+  def getAllRecipes(): Future[Seq[Recipe]] = Recipes.result
   def createRecipe(recipe: Recipe): Future[Recipe] =
-    db run (Recipes.returning(Recipes.map(_.id)) += recipe).map(id => recipe.copy(id = id))
+    (Recipes.returning(Recipes.map(_.id)) += recipe).run().map(id => recipe.copy(id = id))
 
-  def getIngredients(ids: Seq[Int]): Future[Seq[Ingredient]] = db run Ingredients.filter(_.id inSet ids).result
-  def getAllIngredients: Future[Seq[Ingredient]] = db run Ingredients.result
+  def getIngredients(ids: Seq[Int]): Future[Seq[Ingredient]] = Ingredients.filter(_.id inSet ids).result
+  def getAllIngredients: Future[Seq[Ingredient]] = Ingredients.result
 
-  def getProducts(ids: Seq[Int]): Future[Seq[Product]] = db run Products.filter(_.id inSet ids).result
-  def getAllProducts: Future[Seq[Product]] = db run Products.result
+  def getProducts(ids: Seq[Int]): Future[Seq[Product]] = Products.filter(_.id inSet ids).result
+  def getAllProducts: Future[Seq[Product]] = Products.result
 
-  def getOrders(ids: Seq[Int]): Future[Seq[Order]] = db run Orders.filter(_.id inSet ids).result
-  def getUserOrders(id: String): Future[Seq[Order]] = db run Orders.filter(_.orderedBy === id).result
+  def getOrders(ids: Seq[Int]): Future[Seq[Order]] = Orders.filter(_.id inSet ids).result
+  def getUserOrders(id: String): Future[Seq[Order]] = Orders.filter(_.orderedBy === id).result
 
-  def getProductTransfer(id: Int): Future[ProductTransfer] = db run ProductTransfers.filter(_.id === id).result.head
+  def getProductTransfer(id: Int): Future[ProductTransfer] = ProductTransfers.filter(_.id === id).result.head
   def changeProductTransferStatus(id: Int, status: ProductTransfer.Status): Future[Boolean] =
-    db run ProductTransfers.filter(_.id === id).map(_.status).update(status).map(_ > 0)
+    ProductTransfers.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 
-  def getIngredientRequest(id: Int): Future[IngredientRequest] = db run IngredientRequests.filter(_.id === id).result.head
+  def getIngredientRequest(id: Int): Future[IngredientRequest] = IngredientRequests.filter(_.id === id).result.head
   def changeIngredientRequestStatus(id: Int, status: IngredientRequest.Status): Future[Boolean] =
-    db run IngredientRequests.filter(_.id === id).map(_.status).update(status).map(_ > 0)
+    IngredientRequests.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 
   def create(u: User): Future[User] = {
-    println("Creating " + u)
-    db run (Users.returning(Users.map(identity)) += u)
+    Users.returning(Users.map(identity)) += u
   }
 
   def create(c: AccountConfirmation): Future[AccountConfirmation] =
-    db run (AccountConfirmations.returning(AccountConfirmations.map(identity)) += c)
+    AccountConfirmations.returning(AccountConfirmations.map(identity)) += c
   def create(o: Order): Future[Int] =
-    db run (Orders.returning(Orders.map(_.id)) += o)
+    Orders.returning(Orders.map(_.id)) += o
   def create(req: IngredientRequest): Future[Int] =
-    db run (IngredientRequests.returning(IngredientRequests.map(_.id)) += req)
+    IngredientRequests.returning(IngredientRequests.map(_.id)) += req
   def create(t: ProductTransfer): Future[Int] =
-    db run (ProductTransfers.returning(ProductTransfers.map(_.id)) += t)
+    ProductTransfers.returning(ProductTransfers.map(_.id)) += t
 
   def update(user: User): Future[Option[User]] =
-    db run Users
-      .filter(_.id === user.id).update(user)
+    Users
+      .filter(_.id === user.id)
+      .update(user)
       .map(c => if (c > 0) Some(user) else None)
 
   def deactivateUser(userId: String): Future[Boolean] =
-    db run Users.filter(_.id === userId).map(_.status).update(User.Status.Deactivated).map(_ > 0)
+    Users
+      .filter(_.id === userId)
+      .map(_.status)
+      .update(User.Status.Deactivated)
+      .run()
+      .map(_ > 0)
 
   def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] = {
     val session = (id, a.serialize)
-    (db run (Sessions.insertOrUpdate(session))).map(_ > 0)
+    Sessions.insertOrUpdate(session).run().map(_ > 0)
   }
 
   def getSession[T <: Serializable](id: String): Future[Option[T]] =
-    (db run
-      (Sessions
-        .filter(_.id === id)
-        .map(_.content)
-        .result
-        .headOption)
-      .map(_.map(_.deserialize[T])))
-  def isSessionActive(id: String): Future[Boolean] = db run Sessions.filter(_.id === id).exists.result
-  def listSessions(): Future[Seq[(String, Array[Byte])]] = db run Sessions.map(r => (r.id, r.content)).result
-  def deleteSession(id: String): Future[Boolean] = (db run Sessions.filter(_.id === id).delete).map(_ > 0)
+    Sessions
+      .filter(_.id === id)
+      .map(_.content)
+      .result.headOption
+      .run()
+      .map(_.map(_.deserialize[T]))
+  def isSessionActive(id: String): Future[Boolean] = Sessions.filter(_.id === id).exists.result
+  def listSessions(): Future[Seq[(String, Array[Byte])]] = Sessions.map(r => (r.id, r.content)).result
+  def deleteSession(id: String): Future[Boolean] = Sessions.filter(_.id === id).delete.run().map(_ > 0)
 
   def confirm(id: UUID): Future[Option[User]] =
-    db run AccountConfirmations
+    AccountConfirmations
       .filter(c => c.id === id && c.activeUntil <= ZonedDateTime.now())
       .map(_.status)
       .update(AccountConfirmation.Status.Fulfilled)
