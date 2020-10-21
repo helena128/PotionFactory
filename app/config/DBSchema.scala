@@ -191,7 +191,7 @@ object DBSchema {
 
       Users insertOrUpdateAll
         Seq[User](
-          ("admin", "qwerty", "Admin", "good@potions.factory", "555-0000", "Transcendent", Admin, Active),
+          ("admin", "qwerty", "Admin", "god@potions.factory", "555-0000", "Transcendent", Admin, Active),
           ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy, Active),
           ("waremgr", "qwerty", "Warehouse Manager", "warehouse@potions.factory", "555-1111", "Potions Factory", WarehouseManager, Active),
           ("workmgr", "qwerty", "Workshop Manager", "workshop@potions.factory", "555-2222", "Potions Factory", WorkshopManager, Active),
