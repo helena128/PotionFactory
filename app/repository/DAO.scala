@@ -9,12 +9,30 @@ import models._
 import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.GetResult
 import config.PostgresProfile.api._
+import org.postgresql.util.PSQLException
 import utils.Serializer._
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent._
+import scala.util.matching.Regex.Groups
 
 case class DAO(db: Database) {
+  val parseConstraintViolation: PartialFunction[Throwable, Future[Option[User]]] = {
+    case ex: PSQLException =>
+      val msg = ex.getMessage()
+      val regex =
+        "^ERROR: duplicate key value violates unique constraint \"(?<constraint>\\w+)\"\\s*Detail: Key \\(\"(?<column>\\w+)\"\\)=\\((?<value>.+)\\) already exists.$".r
+
+    regex.findFirstMatchIn(msg) match {
+        case Some(Groups(constraint, column, value)) =>
+          throw ConstraintViolationException(constraint, column, value)
+        case None =>
+          throw ex
+      }
+    case e =>
+      throw e
+  }
+
   def run[R](a: DBIOAction[R, NoStream, Nothing]): Future[R] = db.run(a)
 
   def getUser(id: String): Future[User] = db run Users.filter(_.id === id).result.head

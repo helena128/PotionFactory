@@ -1,6 +1,7 @@
 import graphql.middleware.AuthMiddleware
 import graphql.middleware.AuthMiddleware.{AuthenticationException, AuthorizationException}
 import play.api.libs.json.{JsObject, JsValue}
+import repository.ConstraintViolationException
 import sangria.ast.Document
 import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{ExceptionHandler, Executor, HandledException}
@@ -131,9 +132,21 @@ package object graphql {
       recipe.Fetchers()
     ).flatten
 
+  implicit class StringExtension(s: String) {
+    def toCamelCase: String = {
+      val capitalized = s.split("_").map(_.toLowerCase.capitalize).mkString("")
+      capitalized(0).toLower.toString + capitalized.substring(1)
+    }
+  }
   private val Resolver = DeferredResolver.fetchers(fetchers: _*)
   private val ErrorHandler = ExceptionHandler {
     case (_m@_, AuthenticationException(message)) ⇒ HandledException(message)
     case (_m@_, AuthorizationException(message)) ⇒ HandledException(message)
+    case (m, ConstraintViolationException(_, column, value)) =>
+      HandledException("Constraint violation",
+        Map(
+          "column" -> m.scalarNode(column.toCamelCase, "String", Set()),
+          "value" -> m.scalarNode(value, "String", Set())
+        ))
   }
 }
