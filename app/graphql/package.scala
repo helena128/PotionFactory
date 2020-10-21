@@ -101,7 +101,8 @@ package object graphql {
       auth.schema,
       user.schema,
       ingredient.schema, knowledge.schema, order.schema, product.schema, recipe.schema,
-      request.schema
+      request.schema,
+      transfer.schema
     ).reduce(_ + _)
 
   val schema: Schema[AppContext, Unit] = stitchedSchema.copy(

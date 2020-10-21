@@ -62,6 +62,9 @@ type Mutation {
   requestIngredient(request: RequestArg!): Int!
   transferIngredients(requestId: Int!): Boolean!
   receiveIngredients(requestId: Int!): Boolean!
+  makeReport(products: [Int!]!): Int!
+  transferProducts(productTransferId: Int!): Boolean!
+  receiveProducts(productTransferId: Int!): Boolean!
 }
 
 type Order implements IdentifiableWithInt {
@@ -87,6 +90,18 @@ type Product implements IdentifiableWithInt {
   recipe: Recipe!
 }
 
+type ProductTransfer implements IdentifiableWithInt {
+  id: Int!
+  status: ProductTransferStatus!
+  products: [Product!]!
+}
+
+enum ProductTransferStatus {
+  Stored
+  Transfer
+  Produced
+}
+
 "Schema Queries"
 type Query {
   loggedIn: Boolean!
@@ -104,6 +119,7 @@ type Query {
   recipe(id: Int!): Recipe!
   allRecipes: [Recipe!]!
   request(id: Int!): IngredientRequest!
+  report(id: Int!): ProductTransfer!
 }
 
 type Recipe implements IdentifiableWithInt {

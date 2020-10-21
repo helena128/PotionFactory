@@ -1,4 +1,4 @@
-package graphql.transfer
+package graphql
 
 import sangria.schema.Schema
 import security.AppContext
