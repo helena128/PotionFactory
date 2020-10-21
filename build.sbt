@@ -1,6 +1,6 @@
 /** Project Info */
 name := "potion-factory"
-version := "1.1"
+version := "1.2"
 organization := "com.github.helena128"
 maintainer := Seq("Yaroslav Rogov", "Elena Cheprasova", "Ilya Pnachin").mkString(", ")
 
