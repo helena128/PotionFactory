@@ -129,7 +129,10 @@ scalacOptions ++= Seq(
   "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
 
   "-P:silencer:pathFilters=target/.*/templates/html/\\w+.template.scala", // Silence warnings in generated template files
-  "-P:silencer:pathFilters=target/.*/routes"                              // Silence routes file warnings
+  "-P:silencer:pathFilters=target/.*/routes",                             // Silence routes file warnings
+
+  "-J--add-opens java.base/java.lang=com.google.guice,javassist",         // Remove straing Guice warning
+  "-J--add-opens java.base/java.lang=ALL-UNNAMED"                         // Source: https://github.com/google/guice/issues/1133#issuecomment-434635902
 )
 
 scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
