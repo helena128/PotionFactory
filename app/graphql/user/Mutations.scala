@@ -45,8 +45,8 @@ object Mutations extends graphql.Mutations {
         address = address.orElse(user.address))
   }
 
-  val AUser = Argument("user",
-    InputObjectType[User]("user", "User Argument",
+  val AUserEdit = Argument("user",
+    InputObjectType[User]("userEdit", "User Edit Argument",
     List(
       InputField("id", StringType),
       InputField("password", StringType),
@@ -89,13 +89,13 @@ object Mutations extends graphql.Mutations {
   override val mutations: ObjectType[AppContext, Unit] = ObjectType("Mutation", "Schema Mutations",
     fields[AppContext, Unit](
       Field("createUser", UserType,
-        arguments = List(AUser),
-        resolve = c => c.ctx.dao.create(c.args.arg(AUser)),
+        arguments = List(AUserEdit),
+        resolve = c => c.ctx.dao.create(c.args.arg(AUserEdit)),
         tags = List(AdminTag)
       ),
       Field("updateUser", OptionType(UserType),
-        arguments = List(AUser),
-        resolve = c => c.ctx.dao.update(c.args.arg(AUser)),
+        arguments = List(AUserEdit),
+        resolve = c => c.ctx.dao.update(c.args.arg(AUserEdit)),
         tags = List(AdminTag)
       ),
       Field("updateUserSelf", UserType,

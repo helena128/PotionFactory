@@ -50,11 +50,11 @@ enum KnowledgeKind {
 
 "Schema Mutations"
 type Mutation {
-  signup(user: user!): User!
+  signup(user: userSignup!): User!
   login(credentials: Credentials!): User
   logout: Boolean!
-  createUser(user: user!): User!
-  updateUser(user: user!): User
+  createUser(user: userEdit!): User!
+  updateUser(user: userEdit!): User
   updateUserSelf(user: UserChange!): User!
   deactivateUser(userId: String!): Boolean!
   createOrder(order: OrderArg!): Int!
@@ -158,8 +158,20 @@ enum UserStatus {
 
 scalar ZonedDateTime
 
-"User Argument"
-input user {
+"User Edit Argument"
+input userEdit {
+  id: String!
+  password: String!
+  name: String!
+  email: String!
+  phone: String
+  address: String
+  role: String!
+  status: String!
+}
+
+"User Signup Argument"
+input userSignup {
   id: String!
   password: String!
   name: String!

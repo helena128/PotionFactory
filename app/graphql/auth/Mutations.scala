@@ -41,8 +41,8 @@ object Mutations extends graphql.Mutations {
 
   val ACredentials = Argument("credentials",
     deriveInputObjectType[User.Credentials](InputObjectTypeName("Credentials")))
-  val AUser = Argument("user",
-    InputObjectType[User]("user", "User Argument",
+  val AUserSignup = Argument("user",
+    InputObjectType[User]("userSignup", "User Signup Argument",
       List(
         InputField("id", StringType),
         InputField("password", StringType),
@@ -55,10 +55,10 @@ object Mutations extends graphql.Mutations {
   override val mutations = ObjectType("Mutation", "Schema Mutations",
     fields[AppContext, Unit](
       Field("signup", UserType,
-        arguments = List(AUser),
+        arguments = List(AUserSignup),
         resolve = c => {
           UpdateCtx(
-            c.ctx.dao.create(c.arg(AUser))
+            c.ctx.dao.create(c.arg(AUserSignup))
               .flatMap(user =>
                 c.ctx.dao.create(AccountConfirmation(userId = user.id))
                   .map((user, _))
