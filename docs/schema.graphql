@@ -143,7 +143,6 @@ input RequestArg {
 type User implements IdentifiableWithString {
   id: String!
   name: String!
-  email: String!
   phone: String
   address: String
   role: UserRole!
@@ -153,7 +152,6 @@ type User implements IdentifiableWithString {
 input UserChange {
   password: String
   name: String
-  email: String
   phone: String
   address: String
 }
@@ -179,7 +177,6 @@ input userEdit {
   id: String!
   password: String!
   name: String!
-  email: String!
   phone: String
   address: String
   role: String!
@@ -191,7 +188,6 @@ input userSignup {
   id: String!
   password: String!
   name: String!
-  email: String!
   phone: String
   address: String
 }

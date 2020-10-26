@@ -31,17 +31,14 @@ object DBSchema {
     val id = column[String]("ID", O.PrimaryKey)
     val password = column[String]("PASSWORD")
     val name = column[String]("NAME")
-    val email = column[String]("EMAIL")
     val phone = column[Option[String]]("PHONE")
     val address = column[Option[String]]("ADDRESS")
     val role = column[User.Role]("ROLE")
     val status = column[User.Status]("STATUS")
-    val * = (id, password, name, email, phone, address, role, status) <> (
+    val * = (id, password, name, phone, address, role, status) <> (
       User.hashedTupled,
       User.unapply
     )
-
-    val uniqueEmailConstraint = index("EMAIL_UNIQUE", (email), unique = true)
   }
   val Users = TableQuery[UserTable]
 
@@ -155,8 +152,8 @@ object DBSchema {
    */
 
   import Knowledge.Kind._
-  private implicit def tupToUser(t: (String, String, String, String, String, String, User.Role, User.Status)): User =
-    User(t._1, t._2, t._3, t._4, Option(t._5), Option(t._6), t._7, t._8, isHashedPassword = false)
+  private implicit def tupToUser(t: (String, String, String, String, String, User.Role, User.Status)): User =
+    User(t._1, t._2, t._3, Option(t._4), Option(t._5), t._6, t._7, isHashedPassword = false)
 
   private val plantain = Ingredient(0, "Plantain", ZonedDateTime.now().minusDays(10), "It heals", rand.between(10, 100))
   private val oliveOil =
@@ -191,13 +188,13 @@ object DBSchema {
 
       Users insertOrUpdateAll
         Seq[User](
-          ("admin", "qwerty", "Admin", "god@potions.factory", "555-0000", "Transcendent", Admin, Active),
-          ("fairy", "qwerty", "Fairy Godmother", "fairy@potions.factory", "555-0001", "Potions Factory", Fairy, Active),
-          ("waremgr", "qwerty", "Warehouse Manager", "warehouse@potions.factory", "555-1111", "Potions Factory", WarehouseManager, Active),
-          ("workmgr", "qwerty", "Workshop Manager", "workshop@potions.factory", "555-2222", "Potions Factory", WorkshopManager, Active),
-          ("client", "qwerty", "John Doe", "johndoe@example.com", "555-5555", "Bottom of the ocean", Client, Active),
-          ("workworker", "qwerty", "Dollar Mitch", "mitch@potions.factory", "555-8888", "Potions Factory", WorkshopWorker, Active),
-          ("wareworker", "qwerty", "Sixteen Joe", "joe@potions.factory", "555-9999", "Potions Factory", WorkshopWorker, Active)
+          ("god@potions.ml", "qwerty", "Admin", "555-0000", "Transcendent", Admin, Active),
+          ("fairy@potions.ml", "qwerty", "Fairy Godmother", "555-0001", "Potions Factory", Fairy, Active),
+          ("warehouse@potions.ml", "qwerty", "Warehouse Manager", "555-1111", "Potions Factory", WarehouseManager, Active),
+          ("workshop@potions.ml", "qwerty", "Workshop Manager", "555-2222", "Potions Factory", WorkshopManager, Active),
+          ("johndoe@example.com", "qwerty", "John Doe", "555-5555", "Bottom of the ocean", Client, Active),
+          ("mitch@potions.ml", "qwerty", "Dollar Mitch", "555-8888", "Potions Factory", WorkshopWorker, Active),
+          ("joe@potions.ml", "qwerty", "Sixteen Joe", "555-9999", "Potions Factory", WorkshopWorker, Active)
         )
     },
 
@@ -241,7 +238,7 @@ object DBSchema {
 
     Products insertOrUpdateAll Seq(plantainPotionProd, superOliveOilProd),
 
-    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "client")).map(Order.tupled),
+    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "johndoe@example.com")).map(Order.tupled),
 
     ProductTransfers insertOrUpdateAll Seq(
       (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id)),

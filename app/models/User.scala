@@ -4,15 +4,17 @@ import java.io.Serializable
 
 import org.mindrot.jbcrypt.BCrypt
 
-case class User private (id: String,
+case class User private (
+                 id: String,
                  password: String,
                  name: String,
-                 email: String,
                  phone: Option[String],
                  address: Option[String],
                  role: User.Role,
                  status: User.Status
                ) extends Identifiable[String] with Serializable {
+  val email: String = id
+
   def hasPassword(s: String): Boolean = {
     User.checkpw(s, password)
   }
@@ -32,32 +34,31 @@ case class User private (id: String,
 }
 
 object User extends {
-  def apply(id: String, password: String,
-            name: String, email: String, phone: Option[String], address: Option[String],
+  def apply(id: String,
+            password: String,
+            name: String, phone: Option[String], address: Option[String],
             role: User.Role = User.Role.Client,
             status: User.Status = User.Status.Deactivated,
             isHashedPassword: Boolean = false): User = {
     val hashedPassword =
       if (isHashedPassword) password else hashpw(password)
 
-    new User(id, hashedPassword, name, email, phone, address, role, status)
+    new User(id, hashedPassword, name, phone, address, role, status)
   }
 
   def newUser(id: String,
               password: String,
               name: String,
-              email: String,
               phone: Option[String],
               address: Option[String]): User = {
     new User(id, hashpw(password),
-      name,
-      email, phone, address,
+      name, phone, address,
       User.Role.Client, User.Status.Verification)
   }
 
   val hashedTupled =
-    (t: (String, String, String, String, Option[String], Option[String], User.Role, User.Status)) =>
-      new User(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8)
+    (t: (String, String, String, Option[String], Option[String], User.Role, User.Status)) =>
+      new User(t._1, t._2, t._3, t._4, t._5, t._6, t._7)
   val tupled = (User.apply _).tupled
 
   private val salt = BCrypt.gensalt(12)

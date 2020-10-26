@@ -22,7 +22,6 @@ object Mutations extends graphql.Mutations {
         m("id").asInstanceOf[String],
         m("password").asInstanceOf[String],
         m("name").asInstanceOf[String],
-        m("email").asInstanceOf[String],
         m.get("phone").asInstanceOf[Option[String]].flatMap(stringToSome),
         m.get("address").asInstanceOf[Option[String]].flatMap(stringToSome),
         User.Role.fromString(m("role").asInstanceOf[String]),
@@ -33,14 +32,12 @@ object Mutations extends graphql.Mutations {
 
   case class UserChange(password: Option[String],
                         name: Option[String],
-                        email: Option[String],
                         phone: Option[String],
                         address: Option[String]) {
     def change(user: User) =
       user.copy(
         password = password.map(User.hashpw).getOrElse(user.password),
         name = name.getOrElse(user.name),
-        email = email.getOrElse(user.email),
         phone = phone.orElse(user.phone),
         address = address.orElse(user.address))
   }
@@ -51,7 +48,6 @@ object Mutations extends graphql.Mutations {
       InputField("id", StringType),
       InputField("password", StringType),
       InputField("name", StringType),
-      InputField("email", StringType),
       InputField("phone", OptionInputType(StringType)),
       InputField("address", OptionInputType(StringType)),
       InputField("role", StringType),
@@ -76,7 +72,6 @@ object Mutations extends graphql.Mutations {
       UserChange(
         arg("password"),
         arg("name"),
-        arg("email"),
         arg("phone"),
         arg("address")
       )

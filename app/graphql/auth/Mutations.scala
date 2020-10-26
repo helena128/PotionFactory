@@ -32,7 +32,6 @@ object Mutations extends graphql.Mutations {
         m("id").asInstanceOf[String],
         m("password").asInstanceOf[String],
         m("name").asInstanceOf[String],
-        m("email").asInstanceOf[String],
         m.get("phone").asInstanceOf[Option[String]].flatMap(stringToSome),
         m.get("address").asInstanceOf[Option[String]].flatMap(stringToSome)
       )
@@ -47,7 +46,6 @@ object Mutations extends graphql.Mutations {
         InputField("id", StringType),
         InputField("password", StringType),
         InputField("name", StringType),
-        InputField("email", StringType),
         InputField("phone", OptionInputType(StringType)),
         InputField("address", OptionInputType(StringType)),
       )))
@@ -66,7 +64,7 @@ object Mutations extends graphql.Mutations {
               .map {
                 case (user, confirmation) =>
                   val messageId = c.ctx.mailer.sendConfirmation(user, confirmation)
-                  println(f"Sent confirmation ($messageId) for ${user.email}: $confirmation")
+                  println(f"Sent confirmation ($messageId) for ${user.id}: $confirmation")
                   user
               })(user => c.ctx.copy(currentUser = Some(user)))
         },
