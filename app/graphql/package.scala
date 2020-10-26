@@ -140,11 +140,16 @@ package object graphql {
   }
   private val Resolver = DeferredResolver.fetchers(fetchers: _*)
   private val ErrorHandler = ExceptionHandler {
-    case (_m@_, AuthenticationException(message)) ⇒ HandledException(message)
-    case (_m@_, AuthorizationException(message)) ⇒ HandledException(message)
+    case (m, AuthenticationException(message)) ⇒
+      HandledException(message, Map(
+        "code" -> m.scalarNode("UNAUTHENTICATED", "String", Set())))
+    case (m, AuthorizationException(message)) ⇒
+      HandledException(message, Map(
+        "code" -> m.scalarNode("FORBIDDEN", "String", Set())))
     case (m, ConstraintViolationException(_, column, value)) =>
       HandledException("Constraint violation",
         Map(
+          "code" -> m.scalarNode("BAD_USER_INPUT", "String", Set()),
           "column" -> m.scalarNode(column.toCamelCase, "String", Set()),
           "value" -> m.scalarNode(value, "String", Set())
         ))
