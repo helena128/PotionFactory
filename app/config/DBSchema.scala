@@ -139,13 +139,15 @@ object DBSchema {
   }
   val ProductTransfers = TableQuery[ProductTransferTable]
 
-  class SessionTable(tag: Tag) extends Table[(String, Array[Byte])](tag, "SESSIONS") {
+  class UserSessionTable(tag: Tag) extends Table[(String, String)](tag, "SESSIONS") {
     val id = column[String]("ID", O.PrimaryKey)
-    val content = column[Array[Byte]]("CONTENT")
+    val user_id = column[String]("USER_ID")
 
-    val * = (id, content)
+    val * = (id, user_id)
+
+    val userFK = foreignKey("userFK", user_id, Users)(_.id)
   }
-  val Sessions = TableQuery[SessionTable]
+  val UserSessions = TableQuery[UserSessionTable]
 
   /*
    * Populate database with stub values
@@ -174,7 +176,7 @@ object DBSchema {
 
   val schema = Seq(
     Users, Knowledges, Ingredients, IngredientRequests, Recipes, Products, Orders, ProductTransfers,
-    Sessions,
+    UserSessions,
     AccountConfirmations)
     .map(_.schema)
     .reduce(_ ++ _)

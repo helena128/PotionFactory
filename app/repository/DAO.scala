@@ -10,7 +10,6 @@ import slick.dbio.{DBIOAction, NoStream}
 import slick.jdbc.GetResult
 import config.PostgresProfile.api._
 import org.postgresql.util.PSQLException
-import utils.Serializer._
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent._
@@ -118,21 +117,23 @@ case class DAO(db: Database) {
       .run()
       .map(_ > 0)
 
-  def storeSession[T <: Serializable](id: String, a: T): Future[Boolean] = {
-    val session = (id, a.serialize)
-    Sessions.insertOrUpdate(session).run().map(_ > 0)
+  def storeSession(id: String, user_id: String): Future[Boolean] = {
+    val session = (id, user_id)
+    UserSessions.insertOrUpdate(session).run().map(_ > 0)
   }
 
-  def getSession[T <: Serializable](id: String): Future[Option[T]] =
-    Sessions
-      .filter(_.id === id)
-      .map(_.content)
-      .result.headOption
-      .run()
-      .map(_.map(_.deserialize[T]))
-  def isSessionActive(id: String): Future[Boolean] = Sessions.filter(_.id === id).exists.result
-  def listSessions(): Future[Seq[(String, Array[Byte])]] = Sessions.map(r => (r.id, r.content)).result
-  def deleteSession(id: String): Future[Boolean] = Sessions.filter(_.id === id).delete.run().map(_ > 0)
+  def getSessionUser(id: String): Future[Option[User]] =
+    UserSessions
+    .filter(_.id === id)
+    .join(Users)
+    .on(_.user_id === _.id)
+    .map(_._2)
+    .result.headOption
+    .run()
+
+  def isSessionActive(id: String): Future[Boolean] = UserSessions.filter(_.id === id).exists.result
+  def listUserSessions(): Future[Seq[(String, String)]] = UserSessions.map(r => (r.id, r.user_id)).result
+  def deleteSession(id: String): Future[Boolean] = UserSessions.filter(_.id === id).delete.run().map(_ > 0)
 
   def confirm(id: UUID): Future[Option[User]] =
     AccountConfirmations
