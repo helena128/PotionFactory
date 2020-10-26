@@ -180,7 +180,7 @@ object DBSchema {
     .reduce(_ ++ _)
 
   val setup = DBIO.seq(
-    schema.create,
+    schema.createIfNotExists,
 
     {
       import User.Role._
