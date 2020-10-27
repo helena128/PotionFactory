@@ -1,5 +1,6 @@
 import graphql.middleware.AuthMiddleware
 import graphql.middleware.AuthMiddleware.{AuthenticationException, AuthorizationException}
+import org.postgresql.util.PSQLException
 import play.api.libs.json.{JsObject, JsValue}
 import repository.ConstraintViolationException
 import sangria.ast.Document
@@ -153,5 +154,17 @@ package object graphql {
           "column" -> m.scalarNode(column.toCamelCase, "String", Set()),
           "value" -> m.scalarNode(value, "String", Set())
         ))
+    case (m, e: PSQLException) =>
+      println(e.getMessage)
+      e.printStackTrace()
+
+      HandledException("Database error",
+        Map("code" -> m.scalarNode("DB_ERROR", "String", Set())))
+    case (m, e: Exception) =>
+      println(e.getMessage)
+      e.printStackTrace()
+
+      HandledException("Server error",
+        Map("code" -> m.scalarNode("SERVER_ERROR", "String", Set())))
   }
 }
