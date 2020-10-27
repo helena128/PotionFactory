@@ -2,9 +2,9 @@ package graphql.order
 
 import graphql.auth.Tags.ClientTag
 import models.Order
-import sangria.macros.derive.{ExcludeInputFields, InputObjectTypeName, deriveInputObjectType}
-import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
-import sangria.schema.{Argument, Field, IntType, ObjectType, fields}
+import sangria.macros.derive._
+import sangria.marshalling._
+import sangria.schema._
 import security.AppContext
 
 object Mutations extends graphql.Mutations {
@@ -15,17 +15,21 @@ object Mutations extends graphql.Mutations {
       Order(
         product = m("product".asInstanceOf[String]).asInstanceOf[Int],
         count = m("count").asInstanceOf[Int],
-        orderedBy = m("orderedBy").asInstanceOf[String])
+        orderedBy = null)
     }}
 
   val AOrder = Argument("order",
     deriveInputObjectType[Order](InputObjectTypeName("OrderArg"),
-      ExcludeInputFields("id")))
+      ExcludeInputFields("id", "orderedBy")
+    ))
 
   override val mutations = ObjectType("OrderMutation", "Order Mutations",
     fields[AppContext, Unit](
       Field("createOrder", IntType,
         arguments = AOrder :: Nil,
-        resolve = c => c.ctx.dao.create(c.arg(AOrder)),
+        resolve = c => {
+          val order = c.arg(AOrder)
+          c.ctx.dao.create(order.copy(orderedBy = c.ctx.currentUser.get.id))
+        },
         tags = ClientTag :: Nil)))
 }
