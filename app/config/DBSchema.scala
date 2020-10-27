@@ -204,14 +204,14 @@ object DBSchema {
     Knowledges insertOrUpdateAll Seq(
       (0, Gossip, "Somebody told me", ZonedDateTime.now().minusDays(7),
         "I've heard that if you mix cucumber with milk it can help your digestion"),
-      (1, Book, "THE BOOK OF GENESIS", ZonedDateTime.now().minusYears(930),
+      (1, Book, "THE BOOK OF GENESIS", ZonedDateTime.now().minusYears(50),
         "[2:16] And the LORD God commanded the man, \"You may freely eat of every tree of the garden;\n" +
         "[2:17] but of the tree of the knowledge of good and evil you shall not eat, " +
         "for in the day that you eat of it you shall die.\""),
       (2, Myth, "The Myth of Ambrosia", ZonedDateTime.now(),
         "In Greek mythology, ambrosia was considered the food or drink of the Olympian gods, " +
         "and it was thought to bring long life and immortality to anyone who consumed it."),
-      (3, Fable, "Alice’s Adventures in Wonderland", ZonedDateTime.parse("1865-11-26T00:00:00Z"),
+      (3, Fable, "Alice’s Adventures in Wonderland", ZonedDateTime.parse("1965-11-26T00:00:00Z"),
         """
         Soon her eye fell on a little glass box that was lying under the table:
         she opened it, and found in it a very small cake,
