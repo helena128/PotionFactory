@@ -7,6 +7,7 @@ import models.{IngredientRequest, ProductTransfer, _}
 import slick.jdbc.{GetResult, JdbcType}
 import config.PostgresProfile.api._
 import slick.ast.BaseTypedType
+import slick.sql.SqlProfile.ColumnOption.SqlType
 
 import scala.util.Random
 
@@ -61,7 +62,7 @@ object DBSchema {
   implicit val KnowledgeKindMapper = MappedColumnType.base[Knowledge.Kind, String](_.toString, Knowledge.Kind.withName)
   val KnowledgeTable = "KNOWLEDGES"
   class KnowledgeTable(tag: Tag) extends Table[Knowledge](tag, KnowledgeTable) {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val kind = column[Knowledge.Kind]("KIND")
     val name = column[String]("NAME")
     val addedAt = column[ZonedDateTime]("ADDED_AT")
@@ -71,7 +72,7 @@ object DBSchema {
   val Knowledges = TableQuery[KnowledgeTable]
 
   class IngredientTable(tag: Tag) extends Table[Ingredient](tag, "INGREDIENTS") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
     val addedAt = column[ZonedDateTime]("ADDED_AT")
     val description = column[String]("DESCRIPTION")
@@ -85,7 +86,7 @@ object DBSchema {
   = MappedColumnType.base[IngredientRequest.Status, String](_.toString, IngredientRequest.Status.withName)
 
   class IngredientRequestTable(tag: Tag) extends Table[IngredientRequest](tag, "INGREDIENT_REQUESTS") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val status = column[IngredientRequest.Status]("STATUS")
     val ingredients = column[IngredientList]("INGREDIENTS")
     val * = (id, status, ingredients).mapTo[IngredientRequest]
@@ -93,7 +94,7 @@ object DBSchema {
   val IngredientRequests = TableQuery[IngredientRequestTable]
 
   class RecipeTable(tag: Tag) extends Table[Recipe](tag, "RECIPES") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
     val description = column[String]("DESCRIPTION")
     val ingredients = column[IngredientList]("INGREDIENTS")
@@ -102,7 +103,7 @@ object DBSchema {
   val Recipes = TableQuery[RecipeTable]
 
   class ProductTable(tag: Tag) extends Table[Product](tag, "PRODUCTS") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val name = column[String]("NAME")
     val tags = column[ProductTags]("TAGS")
     val description = column[String]("DESCRIPTION")
@@ -116,7 +117,7 @@ object DBSchema {
   val Products = TableQuery[ProductTable]
 
   class OrderTable(tag: Tag) extends Table[Order](tag, "ORDERS") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val content = column[Int]("CONTENT")
     val count = column[Int]("COUNT")
     val orderedBy = column[String]("ORDERED_BY")
@@ -132,7 +133,7 @@ object DBSchema {
   = MappedColumnType.base[ProductTransfer.Status, String](_.toString, ProductTransfer.Status.withName)
 
   class ProductTransferTable(tag: Tag) extends Table[ProductTransfer](tag, "PRODUCT_TRANSFERS") {
-    val id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val status = column[ProductTransfer.Status]("STATUS")
     val products = column[ProductList]("CONTENTS")
     def * = (id, status, products).mapTo[ProductTransfer]
