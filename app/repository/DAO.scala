@@ -137,24 +137,43 @@ case class DAO(db: Database) {
   def listUserSessions(): Future[Seq[(String, String)]] = UserSessions.map(r => (r.id, r.user_id)).result
   def deleteSession(id: String): Future[Boolean] = UserSessions.filter(_.id === id).delete.run().map(_ > 0)
 
-  def confirm(id: UUID): Future[Option[User]] =
+  def confirm(id: UUID): Future[Option[User]] = {
     AccountConfirmations
-      .filter(c => c.id === id && c.activeUntil <= ZonedDateTime.now())
+      .filter(c => c.id === id && c.activeUntil >= ZonedDateTime.now())
       .map(_.status)
       .update(AccountConfirmation.Status.Fulfilled)
-      .map(_ == 0)
+      .map(_ != 0)
       .flatMap {
-        case false => DBIOAction.from(Future(Option.empty[User]))
+        case false => DBIOAction.from(Future(Option.empty[String]))
         case true =>
-          DBIOAction.from(
-            db.run(
-              (AccountConfirmations.join(Users).on(_.userId === _.id)
-                .filter(_._1.id === id)
-                .map(_._2)
-                .result
-                .headOption)))
+          AccountConfirmations
+            .filter(_.id === id)
+            .join(Users).on(_.userId === _.id)
+            .map(_._2.id)
+            .result
+            .headOption
+      }
+      .flatMap {
+        case None =>
+          DBIOAction.from(Future(None))
+        case Some(userId) =>
+          Users
+            .filter(_.id === userId)
+            .map(_.status)
+            .update(User.Status.Active)
+            .map(n => if (n > 0) Some(userId) else None)
+      }
+      .flatMap {
+        case None =>
+          DBIOAction.from(Future(None))
+        case Some(userId) =>
+          Users
+            .filter(_.id === userId)
+            .result
+            .headOption
       }
       .transactionally
+  }
 }
 
 //object DAO {
