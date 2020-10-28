@@ -8,7 +8,7 @@ import security.AppContext
 
 object Types {
   implicit val UserRoleType = deriveEnumType[Role.Value](EnumTypeName("UserRole"),
-    IncludeValues("Admin", "Fairy", "Client", "WorkshopManager", "WarehouseManager"))
+    IncludeValues("Admin", "Fairy", "Client", "WorkshopManager", "WorkshopWorker", "WarehouseManager", "WarehouseWorker"))
 
   implicit val UserStatusType = deriveEnumType[Status.Value](EnumTypeName("UserStatus"),
     IncludeValues("Verification", "Active", "Deactivated"))
