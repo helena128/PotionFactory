@@ -32,8 +32,8 @@ object Mutations extends graphql.Mutations {
         m("id").asInstanceOf[String],
         m("password").asInstanceOf[String],
         m("name").asInstanceOf[String],
-        m.get("phone").asInstanceOf[Option[String]].flatMap(stringToSome),
-        m.get("address").asInstanceOf[Option[String]].flatMap(stringToSome)
+        m("phone").asInstanceOf[Option[String]].flatMap(stringToSome),
+        m("address").asInstanceOf[Option[String]].flatMap(stringToSome)
       )
     }
   }
