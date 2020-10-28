@@ -89,7 +89,9 @@ object DBSchema {
     val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val status = column[IngredientRequest.Status]("STATUS")
     val ingredients = column[IngredientList]("INGREDIENTS")
-    val * = (id, status, ingredients).mapTo[IngredientRequest]
+    val createdAt = column[ZonedDateTime]("CREATED_AT")
+
+    val * = (id, status, ingredients, createdAt).mapTo[IngredientRequest]
   }
   val IngredientRequests = TableQuery[IngredientRequestTable]
 
@@ -121,7 +123,8 @@ object DBSchema {
     val content = column[Int]("CONTENT")
     val count = column[Int]("COUNT")
     val orderedBy = column[String]("ORDERED_BY")
-    val * = (id, content, count, orderedBy).mapTo[Order]
+    val createdAt = column[ZonedDateTime]("CREATED_AT")
+    val * = (id, content, count, orderedBy, createdAt).mapTo[Order]
 
     val contentFK = foreignKey("contentFK", content, Products)(_.id)
     val orderedByFK = foreignKey("orderedByFK", orderedBy, Users)(_.id)
@@ -136,7 +139,8 @@ object DBSchema {
     val id = column[Int]("ID", SqlType("SERIAL"), O.PrimaryKey, O.AutoInc)
     val status = column[ProductTransfer.Status]("STATUS")
     val products = column[ProductList]("CONTENTS")
-    def * = (id, status, products).mapTo[ProductTransfer]
+    val createdAt = column[ZonedDateTime]("CREATED_AT")
+    def * = (id, status, products, createdAt).mapTo[ProductTransfer]
   }
   val ProductTransfers = TableQuery[ProductTransferTable]
 
@@ -181,6 +185,8 @@ object DBSchema {
     AccountConfirmations)
     .map(_.schema)
     .reduce(_ ++ _)
+
+  val now = ZonedDateTime.now()
 
   val setup = DBIO.seq(
     schema.createIfNotExists,
@@ -228,12 +234,12 @@ object DBSchema {
       import IngredientRequest.Status._
 
       IngredientRequests insertOrUpdateAll Seq(
-        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id)),
-        (1, Open, List.fill(10)(plantain.id) ++ List.fill(4)(oliveOil.id) ++ List.fill(2)(parrotsHorn.id)),
-        (2, Transfer, List.fill(2)(plantain.id) ++ List.fill(10)(oliveOil.id) ++ List.fill(34)(parrotsHorn.id)),
-        (3, Transfer, List.fill(7)(plantain.id) ++ List.fill(133)(oliveOil.id) ++ List.fill(28)(parrotsHorn.id)),
-        (4, Received, List.fill(12)(plantain.id) ++ List.fill(84)(oliveOil.id) ++ List.fill(12)(parrotsHorn.id)),
-        (5, Received, List.fill(53)(plantain.id) ++ List.fill(16)(oliveOil.id) ++ List.fill(13)(parrotsHorn.id))
+        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id), now),
+        (1, Open, List.fill(10)(plantain.id) ++ List.fill(4)(oliveOil.id) ++ List.fill(2)(parrotsHorn.id), now),
+        (2, Transfer, List.fill(2)(plantain.id) ++ List.fill(10)(oliveOil.id) ++ List.fill(34)(parrotsHorn.id), now),
+        (3, Transfer, List.fill(7)(plantain.id) ++ List.fill(133)(oliveOil.id) ++ List.fill(28)(parrotsHorn.id), now),
+        (4, Received, List.fill(12)(plantain.id) ++ List.fill(84)(oliveOil.id) ++ List.fill(12)(parrotsHorn.id), now),
+        (5, Received, List.fill(53)(plantain.id) ++ List.fill(16)(oliveOil.id) ++ List.fill(13)(parrotsHorn.id), now)
       ).map(IngredientRequest.tupled)
     },
 
@@ -241,12 +247,12 @@ object DBSchema {
 
     Products insertOrUpdateAll Seq(plantainPotionProd, superOliveOilProd),
 
-    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "johndoe@example.com")).map(Order.tupled),
+    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "johndoe@example.com", now)).map(Order.tupled),
 
     ProductTransfers insertOrUpdateAll Seq(
-      (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id)),
-      (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id)),
-      (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id)),
+      (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id), now),
+      (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id), now),
+      (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id), now),
     ).map(ProductTransfer.tupled),
   )
 

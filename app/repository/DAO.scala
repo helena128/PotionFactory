@@ -79,16 +79,20 @@ case class DAO(db: Database) {
   def getProducts(ids: Seq[Int]): Future[Seq[Product]] = Products.filter(_.id inSet ids).result
   def getAllProducts: Future[Seq[Product]] = Products.result
 
-  def getOrders(ids: Seq[Int]): Future[Seq[Order]] = Orders.filter(_.id inSet ids).result
-  def getUserOrders(id: String): Future[Seq[Order]] = Orders.filter(_.orderedBy === id).result
+  def getOrders(ids: Seq[Int]): Future[Seq[Order]] = Orders.sortBy(_.createdAt.desc).filter(_.id inSet ids).result
+  def getUserOrders(id: String): Future[Seq[Order]] =
+    Orders
+      .filter(_.orderedBy === id)
+      .sortBy(_.createdAt.desc)
+      .result
 
   def getProductTransfer(id: Int): Future[ProductTransfer] = ProductTransfers.filter(_.id === id).result.head
-  def getAllProductTransfers(): Future[Seq[ProductTransfer]] = ProductTransfers.result
+  def getAllProductTransfers(): Future[Seq[ProductTransfer]] = ProductTransfers.sortBy(_.createdAt.desc).result
   def changeProductTransferStatus(id: Int, status: ProductTransfer.Status): Future[Boolean] =
     ProductTransfers.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 
   def getIngredientRequest(id: Int): Future[IngredientRequest] = IngredientRequests.filter(_.id === id).result.head
-  def getAllIngredientRequests(): Future[Seq[IngredientRequest]] = IngredientRequests.result
+  def getAllIngredientRequests(): Future[Seq[IngredientRequest]] = IngredientRequests.sortBy(_.createdAt.desc).result
   def changeIngredientRequestStatus(id: Int, status: IngredientRequest.Status): Future[Boolean] =
     IngredientRequests.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 

@@ -1,8 +1,12 @@
 package models
 
+import java.time.ZonedDateTime
+
 case class IngredientRequest(id: Int = -1,
                              status: IngredientRequest.Status = IngredientRequest.Status.Open,
-                             ingredients: IngredientList)
+                             ingredients: IngredientList,
+                             createdAt: ZonedDateTime = ZonedDateTime.now()
+                            )
   extends Identifiable[Int]
 
 object IngredientRequest {

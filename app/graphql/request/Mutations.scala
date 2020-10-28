@@ -17,7 +17,7 @@ object Mutations extends graphql.Mutations {
 
   val ARequest = Argument("request",
     deriveInputObjectType[IngredientRequest](InputObjectTypeName("RequestArg"),
-      ExcludeInputFields("id", "status"),
+      ExcludeInputFields("id", "status", "createdAt"),
       ReplaceInputField("ingredients", InputField("ingredients", ListInputType(IntType)))))
 
   val ARequestId = Argument("requestId", IntType)

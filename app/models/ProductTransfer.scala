@@ -1,9 +1,13 @@
 package models
 
+import java.time.ZonedDateTime
+
 
 case class ProductTransfer(id: Int = -1,
                            status: ProductTransfer.Status = ProductTransfer.Status.Produced,
-                           products: ProductList)
+                           products: ProductList,
+                           createdAt: ZonedDateTime = ZonedDateTime.now()
+                          )
   extends Identifiable[Int]
 
 object ProductTransfer {

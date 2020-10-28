@@ -20,7 +20,7 @@ object Mutations extends graphql.Mutations {
 
   val AOrder = Argument("order",
     deriveInputObjectType[Order](InputObjectTypeName("OrderArg"),
-      ExcludeInputFields("id", "orderedBy")
+      ExcludeInputFields("id", "orderedBy", "createdAt")
     ))
 
   override val mutations = ObjectType("OrderMutation", "Order Mutations",

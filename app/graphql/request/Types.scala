@@ -7,6 +7,7 @@ import models.IngredientRequest
 import sangria.macros.derive._
 import sangria.schema._
 import security.AppContext
+import graphql.Types._
 
 object Types {
   implicit val IngredientRequestType = deriveObjectType[AppContext, IngredientRequest](
