@@ -1,6 +1,6 @@
 package graphql.middleware
 
-import graphql.auth.Tags.RoleTag
+import graphql.auth.Tags.UserTag
 import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
 import sangria.schema.Context
 import security.AppContext
@@ -26,8 +26,8 @@ object AuthMiddleware extends Middleware[AppContext] with MiddlewareBeforeField[
     }
     println(f"Field: ${c.field.name} (tags: ${c.field.tags.mkString(", ")})")
 
-    val roleTags = c.field.tags.filter(_.isInstanceOf[RoleTag])
-    val passed = roleTags.isEmpty || roleTags.exists { case rt: RoleTag => rt.check(user) }
+    val roleTags = c.field.tags.filter(_.isInstanceOf[UserTag])
+    val passed = roleTags.isEmpty || roleTags.exists { case rt: UserTag => rt.check(user) }
 
     (passed, c.ctx.currentUser.nonEmpty) match {
       case (true, _) => continue
