@@ -1,6 +1,8 @@
 package graphql.auth
 
-import graphql.auth.Tags.NotAuthenticatedTag
+import java.time.ZonedDateTime
+
+import graphql.auth.Tags._
 import graphql.user.Types._
 import models.{AccountConfirmation, User}
 import models.User.Credentials
@@ -10,6 +12,7 @@ import sangria.schema._
 import security.AppContext
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Mutations extends graphql.Mutations {
   implicit val _credentials_input = new FromInput[Credentials] {
@@ -58,14 +61,20 @@ object Mutations extends graphql.Mutations {
           UpdateCtx(
             c.ctx.dao.create(c.arg(AUserSignup))
               .flatMap(user =>
-                c.ctx.dao.create(AccountConfirmation(userId = user.id))
+                c.ctx.dao.create(AccountConfirmation(userId = user.id, activeUntil = ZonedDateTime.now().plusWeeks(1)))
                   .map((user, _))
               )
-              .map {
+              .flatMap {
                 case (user, confirmation) =>
                   val messageId = c.ctx.mailer.sendConfirmation(user, confirmation)
                   println(f"Sent confirmation ($messageId) for ${user.id}: $confirmation")
-                  user
+                  if (c.ctx.mailer.isMocked) {
+                    println("Email client is mocked: Automatically confirming account")
+                    c.ctx.dao.confirm(confirmation.id).map(_.get)
+                  }
+                  else {
+                    Future(user)
+                  }
               })(user => c.ctx.copy(currentUser = Some(user)))
         },
         tags = List(NotAuthenticatedTag)),
