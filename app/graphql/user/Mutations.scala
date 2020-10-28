@@ -1,11 +1,12 @@
 package graphql.user
-import graphql.auth.Tags.{AdminTag, AuthenticatedTag}
+import graphql.auth.Tags._
 import models.User
 import sangria.marshalling.{CoercedScalaResultMarshaller, FromInput}
 import sangria.schema._
 import sangria.macros.derive._
 import security.AppContext
 import graphql.user.Types._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Mutations extends graphql.Mutations {

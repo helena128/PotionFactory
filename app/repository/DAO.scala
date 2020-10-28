@@ -18,7 +18,7 @@ import scala.util.matching.Regex.Groups
 case class DAO(db: Database) {
   def handleConstraintViolation[R]: PartialFunction[Throwable, Future[R]] = {
     case ex: PSQLException =>
-      val msg = ex.getMessage()
+      val msg = ex.getMessage
       val regex =
         "^ERROR: duplicate key value violates unique constraint \"(?<constraint>\\w+)\"\\s*Detail: Key \\(\"(?<column>\\w+)\"\\)=\\((?<value>.+)\\) already exists.$".r
 
