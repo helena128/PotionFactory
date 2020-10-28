@@ -3,11 +3,11 @@ package email
 //import java.io.{File, PrintWriter}
 
 import email.templates.html._
-import javax.inject.Inject
+import javax.inject.{Inject, Provider}
 import models.{AccountConfirmation, User}
 import play.api.libs.mailer._
 
-class MailService @Inject()(mailerClient: MailerClient) {
+class MailService @Inject()(mailerClient: MailerClient, smtpConfigurationProvider: Provider[SMTPConfiguration]) {
   type MessageID = String
 //  def sendEmail() = {
 //    val email = Email(
@@ -30,6 +30,8 @@ class MailService @Inject()(mailerClient: MailerClient) {
 //  }
 
   val noreply = "Potions <noreply@potions.ml>"
+
+  def isMocked = smtpConfigurationProvider.get().mock
 
   def sendConfirmation(user: User, confirmation: AccountConfirmation): MessageID = {
 //    println()
