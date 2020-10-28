@@ -12,7 +12,6 @@ object Queries extends graphql.Queries {
         resolve = c => c.ctx.currentUser.nonEmpty),
 
       Field("currentUser", OptionType(UserType),
-        resolve = c => c.ctx.currentUser,
-        tags = AuthenticatedTag :: Nil
+        resolve = c => c.ctx.currentUser
       )))
 }
