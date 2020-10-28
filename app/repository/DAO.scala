@@ -43,7 +43,7 @@ case class DAO(db: Database) {
   def getUser(id: String): Future[User] = Users.filter(_.id === id).result.head
   def authenticate(id: String, password: String): Future[Option[User]] = {
     Users
-      .filter(_.id === id)
+      .filter(u => u.id === id && u.status === User.Status.Active)
       .result.headOption
       .run()
       .map(_.filter(_.hasPassword(password)))
