@@ -77,7 +77,6 @@ type Order implements IdentifiableWithInt {
 input OrderArg {
   product: Int!
   count: Int!
-  orderedBy: String!
 }
 
 type Product implements IdentifiableWithInt {
@@ -119,7 +118,9 @@ type Query {
   recipe(id: Int!): Recipe!
   allRecipes: [Recipe!]!
   request(id: Int!): IngredientRequest!
+  allRequests: [IngredientRequest!]!
   report(id: Int!): ProductTransfer!
+  allReports: [ProductTransfer!]!
 }
 
 type Recipe implements IdentifiableWithInt {
@@ -157,7 +158,9 @@ input UserChange {
 }
 
 enum UserRole {
+  WarehouseWorker
   WarehouseManager
+  WorkshopWorker
   WorkshopManager
   Fairy
   Client
