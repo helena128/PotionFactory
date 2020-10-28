@@ -17,7 +17,7 @@ object Queries extends graphql.Queries {
       ),
       Field("orders", ListType(OrderType),
         resolve = c => c.ctx.dao.getUserOrders(c.ctx.currentUser.get.id),
-        tags = List(AuthenticatedTag)
+        tags = List(ClientTag)
       )
     )
   )
