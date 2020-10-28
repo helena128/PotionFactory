@@ -83,10 +83,12 @@ case class DAO(db: Database) {
   def getUserOrders(id: String): Future[Seq[Order]] = Orders.filter(_.orderedBy === id).result
 
   def getProductTransfer(id: Int): Future[ProductTransfer] = ProductTransfers.filter(_.id === id).result.head
+  def getAllProductTransfers(): Future[Seq[ProductTransfer]] = ProductTransfers.result
   def changeProductTransferStatus(id: Int, status: ProductTransfer.Status): Future[Boolean] =
     ProductTransfers.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 
   def getIngredientRequest(id: Int): Future[IngredientRequest] = IngredientRequests.filter(_.id === id).result.head
+  def getAllIngredientRequests(): Future[Seq[IngredientRequest]] = IngredientRequests.result
   def changeIngredientRequestStatus(id: Int, status: IngredientRequest.Status): Future[Boolean] =
     IngredientRequests.filter(_.id === id).map(_.status).update(status).run().map(_ > 0)
 
