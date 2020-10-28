@@ -100,7 +100,7 @@ object Mutations extends graphql.Mutations {
           val user = c.args.arg(AUserSelf).change(c.ctx.currentUser.get)
           UpdateCtx(c.ctx.dao.update(user).map(_.get))(u => c.ctx.copy(currentUser = Some(u)))
         },
-        tags = List(AuthenticatedTag)
+        tags = List(ActiveTag)
       ),
       Field("deactivateUser", BooleanType,
         arguments = List(AUserId),
