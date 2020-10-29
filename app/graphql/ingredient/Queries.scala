@@ -8,7 +8,7 @@ import sangria.schema.{Field, ListType, ObjectType, fields}
 import security.AppContext
 
 object Queries extends graphql.Queries {
-  private val tags = List(FairyTag, WorkerTag)
+  private val tags = List(FairyTag, WorkshopTag, WarehouseTag)
   val queries = ObjectType("IngredientQuery", "Ingredient Queries",
     fields[AppContext, Unit](
       Field("ingredient", IngredientType,
