@@ -24,6 +24,7 @@ type Ingredient implements IdentifiableWithInt {
 type IngredientRequest implements IdentifiableWithInt {
   id: Int!
   status: IngredientRequestStatus!
+  createdAt: ZonedDateTime!
   ingredients: [Ingredient!]!
 }
 
@@ -71,6 +72,7 @@ type Order implements IdentifiableWithInt {
   id: Int!
   count: Int!
   orderedBy: String!
+  createdAt: ZonedDateTime!
   product: Product!
 }
 
@@ -92,6 +94,7 @@ type Product implements IdentifiableWithInt {
 type ProductTransfer implements IdentifiableWithInt {
   id: Int!
   status: ProductTransferStatus!
+  createdAt: ZonedDateTime!
   products: [Product!]!
 }
 
@@ -182,8 +185,7 @@ input userEdit {
   name: String!
   phone: String
   address: String
-  role: String!
-  status: String!
+  role: UserRole!
 }
 
 "User Signup Argument"

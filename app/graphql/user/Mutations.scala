@@ -23,10 +23,10 @@ object Mutations extends graphql.Mutations {
         m("id").asInstanceOf[String],
         m("password").asInstanceOf[String],
         m("name").asInstanceOf[String],
-        m.get("phone").asInstanceOf[Option[String]].flatMap(stringToSome),
-        m.get("address").asInstanceOf[Option[String]].flatMap(stringToSome),
-        User.Role.fromString(m("role").asInstanceOf[String]),
-        User.Status.fromString(m("status").asInstanceOf[String])
+        m.get("phone").asInstanceOf[Option[Option[String]]].flatten.flatMap(stringToSome),
+        m.get("address").asInstanceOf[Option[Option[String]]].flatten.flatMap(stringToSome),
+        m("role").asInstanceOf[User.Role],
+        User.Status.Active
       )
     }
   }
@@ -51,8 +51,7 @@ object Mutations extends graphql.Mutations {
       InputField("name", StringType),
       InputField("phone", OptionInputType(StringType)),
       InputField("address", OptionInputType(StringType)),
-      InputField("role", StringType),
-      InputField("status", StringType)
+      InputField("role", UserRoleType),
     )))
 
   implicit val _new_user_self_input = new FromInput[UserChange] {
