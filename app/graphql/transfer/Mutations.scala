@@ -27,7 +27,7 @@ object Mutations extends graphql.Mutations {
       Field("receiveProducts", BooleanType,
         arguments = List( AProductTransferId ),
         resolve = c => c.ctx.dao.changeProductTransferStatus(c.arg(AProductTransferId), Status.Stored),
-        tags = List( WorkshopManagerTag )
+        tags = List( WarehouseManagerTag )
       )
     )
   )
