@@ -24,7 +24,7 @@ case class DAO(db: Database) {
 
     regex.findFirstMatchIn(msg) match {
         case Some(Groups(constraint, column, value)) =>
-          throw ConstraintViolationException(constraint, column, value)
+          throw ConstraintViolationException(constraint, ConstraintViolationException.Unique(column, value))
         case None =>
           throw ex
       }

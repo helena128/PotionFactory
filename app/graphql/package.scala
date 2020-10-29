@@ -147,13 +147,19 @@ package object graphql {
     case (m, AuthorizationException(message)) ⇒
       HandledException(message, Map(
         "code" -> m.scalarNode("FORBIDDEN", "String", Set())))
-    case (m, ConstraintViolationException(_, column, value)) =>
-      HandledException("Constraint violation",
-        Map(
-          "code" -> m.scalarNode("BAD_USER_INPUT", "String", Set()),
-          "column" -> m.scalarNode(column.toCamelCase, "String", Set()),
-          "value" -> m.scalarNode(value, "String", Set())
-        ))
+    case (m, ConstraintViolationException(_, source)) =>
+      import ConstraintViolationException._
+      source match {
+        case Unique(column, value) =>
+          HandledException("Constraint violation",
+            Map(
+              "code" -> m.scalarNode("BAD_USER_INPUT", "String", Set()),
+              "kind" -> m.scalarNode("unique", "String", Set()),
+              "column" -> m.scalarNode(column.toCamelCase, "String", Set()),
+              "value" -> m.scalarNode(value, "String", Set())
+            ))
+      }
+
     case (m, e: PSQLException) =>
       println(e.getMessage)
       e.printStackTrace()
