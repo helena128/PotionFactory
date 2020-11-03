@@ -54,8 +54,8 @@ type Mutation {
   signup(user: userSignup!): User!
   login(credentials: Credentials!): User
   logout: Boolean!
-  createUser(user: userEdit!): User!
-  updateUser(user: userEdit!): User
+  createUser(user: userCreate!): User!
+  updateUser(user: UserChange!): User
   updateUserSelf(user: UserChange!): User!
   deactivateUser(userId: String!): Boolean!
   createOrder(order: OrderArg!): Int!
@@ -158,6 +158,8 @@ input UserChange {
   name: String
   phone: String
   address: String
+  id: String!
+  role: UserRole
 }
 
 enum UserRole {
@@ -179,7 +181,7 @@ enum UserStatus {
 scalar ZonedDateTime
 
 "User Edit Argument"
-input userEdit {
+input userCreate {
   id: String!
   password: String!
   name: String!

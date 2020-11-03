@@ -40,7 +40,7 @@ case class DAO(db: Database) {
   }
   private implicit def runDBIO[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] = dbrun(action)
 
-  def getUser(id: String): Future[User] = Users.filter(_.id === id).result.head
+  def getUser(id: String): Future[Option[User]] = Users.filter(_.id === id).result.headOption
   def authenticate(id: String, password: String): Future[Option[User]] = {
     Users
       .filter(u => u.id === id && u.status === User.Status.Active)
@@ -99,7 +99,6 @@ case class DAO(db: Database) {
   def create(u: User): Future[User] = {
     Users.returning(Users.map(identity)) += u
   }
-
   def create(c: AccountConfirmation): Future[AccountConfirmation] =
     AccountConfirmations.returning(AccountConfirmations.map(identity)) += c
   def create(o: Order): Future[Int] =
@@ -108,6 +107,7 @@ case class DAO(db: Database) {
     IngredientRequests.returning(IngredientRequests.map(_.id)) += req
   def create(t: ProductTransfer): Future[Int] =
     ProductTransfers.returning(ProductTransfers.map(_.id)) += t
+
 
   def update(user: User): Future[Option[User]] =
     Users

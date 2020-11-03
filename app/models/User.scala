@@ -50,10 +50,13 @@ object User extends {
               password: String,
               name: String,
               phone: Option[String],
-              address: Option[String]): User = {
+              address: Option[String],
+              role: User.Role = User.Role.Client,
+              status: User.Status = User.Status.Verification
+             ): User = {
     new User(id, hashpw(password),
       name, phone, address,
-      User.Role.Client, User.Status.Verification)
+      role, status)
   }
 
   val hashedTupled =
