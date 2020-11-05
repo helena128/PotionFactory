@@ -231,7 +231,7 @@ object DBSchema {
     Ingredients insertOrUpdateAll Seq(plantain, oliveOil, parrotsHorn),
 
     {
-      import IngredientRequest.Status._
+//      import IngredientRequest.Status._
 
       IngredientRequests insertOrUpdateAll Seq(
 //        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id), now),
