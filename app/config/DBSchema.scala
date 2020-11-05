@@ -234,12 +234,12 @@ object DBSchema {
       import IngredientRequest.Status._
 
       IngredientRequests insertOrUpdateAll Seq(
-        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id), now),
-        (1, Open, List.fill(10)(plantain.id) ++ List.fill(4)(oliveOil.id) ++ List.fill(2)(parrotsHorn.id), now),
-        (2, Transfer, List.fill(2)(plantain.id) ++ List.fill(10)(oliveOil.id) ++ List.fill(34)(parrotsHorn.id), now),
-        (3, Transfer, List.fill(7)(plantain.id) ++ List.fill(133)(oliveOil.id) ++ List.fill(28)(parrotsHorn.id), now),
-        (4, Received, List.fill(12)(plantain.id) ++ List.fill(84)(oliveOil.id) ++ List.fill(12)(parrotsHorn.id), now),
-        (5, Received, List.fill(53)(plantain.id) ++ List.fill(16)(oliveOil.id) ++ List.fill(13)(parrotsHorn.id), now)
+//        (0, Open, List.fill(1)(plantain.id) ++ List.fill(2)(oliveOil.id) ++ List.fill(3)(parrotsHorn.id), now),
+//        (1, Open, List.fill(10)(plantain.id) ++ List.fill(4)(oliveOil.id) ++ List.fill(2)(parrotsHorn.id), now),
+//        (2, Transfer, List.fill(2)(plantain.id) ++ List.fill(10)(oliveOil.id) ++ List.fill(34)(parrotsHorn.id), now),
+//        (3, Transfer, List.fill(7)(plantain.id) ++ List.fill(133)(oliveOil.id) ++ List.fill(28)(parrotsHorn.id), now),
+//        (4, Received, List.fill(12)(plantain.id) ++ List.fill(84)(oliveOil.id) ++ List.fill(12)(parrotsHorn.id), now),
+//        (5, Received, List.fill(53)(plantain.id) ++ List.fill(16)(oliveOil.id) ++ List.fill(13)(parrotsHorn.id), now)
       ).map(IngredientRequest.tupled)
     },
 
@@ -247,12 +247,14 @@ object DBSchema {
 
     Products insertOrUpdateAll Seq(plantainPotionProd, superOliveOilProd),
 
-    Orders insertOrUpdateAll Seq((0, plantainPotionProd.id, 3, "johndoe@example.com", now)).map(Order.tupled),
+    Orders insertOrUpdateAll Seq(
+//      (0, plantainPotionProd.id, 3, "johndoe@example.com", now)
+    ).map(Order.tupled),
 
     ProductTransfers insertOrUpdateAll Seq(
-      (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id), now),
-      (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id), now),
-      (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id), now),
+//      (0, ProductTransfer.Status.Produced, List.fill(100)(plantainPotionProd.id), now),
+//      (1, ProductTransfer.Status.Transfer, List.fill(5)(plantainPotionProd.id) ++ List.fill(10)(superOliveOilProd.id), now),
+//      (2, ProductTransfer.Status.Stored, List.fill(50)(superOliveOilProd.id), now),
     ).map(ProductTransfer.tupled),
   )
 
