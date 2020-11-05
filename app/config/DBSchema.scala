@@ -202,8 +202,8 @@ object DBSchema {
           ("warehouse@potions.ml", "qwerty", "Warehouse Manager", "555-1111", "Potions Factory", WarehouseManager, Active),
           ("workshop@potions.ml", "qwerty", "Workshop Manager", "555-2222", "Potions Factory", WorkshopManager, Active),
           ("johndoe@example.com", "qwerty", "John Doe", "555-5555", "Bottom of the ocean", Client, Active),
-          ("mitch@potions.ml", "qwerty", "Dollar Mitch", "555-8888", "Potions Factory", WorkshopWorker, Active),
-          ("joe@potions.ml", "qwerty", "Sixteen Joe", "555-9999", "Potions Factory", WorkshopWorker, Active)
+//          ("mitch@potions.ml", "qwerty", "Dollar Mitch", "555-8888", "Potions Factory", WorkshopWorker, Active),
+//          ("joe@potions.ml", "qwerty", "Sixteen Joe", "555-9999", "Potions Factory", WarehouseWorker, Active)
         )
     },
 
