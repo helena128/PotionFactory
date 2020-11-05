@@ -1,4 +1,4 @@
-@(user: User)
+@(user: User, order: Order)
 
 @import play.twirl.api.HtmlFormat.escape
 @baseUrl = @{config.WebConfig.baseUrl}
@@ -187,7 +187,11 @@
                                                                                                                                     <tr>
                                                                                                                                         <td>
                                                                                                                                             <div class="text-center" style="color:#605F5D; font-family: Arial,sans-serif; font-size:18px; line-height:32px; text-align:left">
-                                                                                                                                                @escape(user.name), finally, welcome to Potions! It's been lonely without you, and now we're happy to provide you with all the potions you want and desire.</div>
+                                                                                                                                                Dear @user.name,<br><br>
+                                                                                                                                                The status of your order #@order.id has been changed to "In progress"<br><br>
+                                                                                                                                                Best regards,<br>
+                                                                                                                                                Potion Factory
+                                                                                                                                            </div>
                                                                                                                                         </td>
                                                                                                                                     </tr>
                                                                                                                                 </tbody>
@@ -209,7 +213,7 @@
                                                                                                             </table>
                                                                                                             <div align="center" class="button-container center" style="padding-right: 20px; padding-left: 20px; padding-top:16px; padding-bottom:16px;">
 
-                                                                                                                <a href="@url("/")" target="_blank" style="display: block;
+                                                                                                                <a href="@url("/orders")" target="_blank" style="display: block;
                                                                                                                     text-decoration: none;
                                                                                                                     -webkit-text-size-adjust: none;
                                                                                                                     text-align: center;
@@ -233,7 +237,7 @@
                                                                                                                     mso-border-alt: none"><span style="font-family:Apercu, Arial, 'Helvetica Neue', Helvetica, sans-serif;
                                                                                                                     font-size:12px;
                                                                                                                     line-height:16px;
-                                                                                                                    letter-spacing: 3px;"><strong>Change Your Life</strong> </span></a>
+                                                                                                                    letter-spacing: 3px;"><strong>Check your orders</strong> </span></a>
 
                                                                                                             </div>
                                                                                                             <table>

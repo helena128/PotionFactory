@@ -4,41 +4,16 @@ package email
 
 import email.templates.html._
 import javax.inject.{Inject, Provider}
-import models.{AccountConfirmation, User}
+import models.{AccountConfirmation, Order, User}
 import play.api.libs.mailer._
 
 class MailService @Inject()(mailerClient: MailerClient, smtpConfigurationProvider: Provider[SMTPConfiguration]) {
   type MessageID = String
-//  def sendEmail() = {
-//    val email = Email(
-//      "Simple email",
-//      "Potions Factory <noreply@potions.ml>",
-//      Seq("yrogov <rogovyaroslav@gmail.com>"),
-      // adds attachment
-//      attachments = Seq(
-//        AttachmentFile("attachment.pdf", new File("/some/path/attachment.pdf")),
-//        // adds inline attachment from byte array
-//        AttachmentData("data.txt", "data".getBytes, "text/plain", Some("Simple data"), Some(EmailAttachment.INLINE)),
-//        // adds cid attachment
-//        AttachmentFile("image.jpg", new File("/some/path/image.jpg"), contentId = Some(cid))
-//      ),
-      // sends text, HTML or both...
-//      bodyText = Some("A text message"),
-//      bodyHtml = Some(s"""<html><body><p><h1>Hello, World!</h1></p></body></html>""")
-//    )
-//    mailerClient.send(email)
-//  }
-
   val noreply = "Potions <noreply@potions.ml>"
 
   def isMocked = smtpConfigurationProvider.get().mock
 
   def sendConfirmation(user: User, confirmation: AccountConfirmation): MessageID = {
-//    println()
-//    val filename = "/tmp/test.html"
-//    new PrintWriter((new File(filename))).write(Confirmation(user, confirmation).body)
-//    sys.process.Process("open", Seq(filename))!
-
     println("Sending confirmation to " + user)
     send(
       Email(
@@ -61,11 +36,18 @@ class MailService @Inject()(mailerClient: MailerClient, smtpConfigurationProvide
     )
   }
 
+  def sendOrderChange(user: User, order: Order): MessageID = {
+    send(
+      Email(
+        f"Your Order #${order.id} Status has changed",
+        noreply,
+        Seq(user.email),
+        bodyHtml = Some(OrderChange(user, order).body)
+      )
+    )
+  }
+
   private def send(email: Email): MessageID = {
     mailerClient.send(email)
   }
 }
-
-//object MailerService {
-//  private val mailer = new MailerService()
-//}

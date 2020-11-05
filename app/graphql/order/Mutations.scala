@@ -6,6 +6,8 @@ import sangria.macros.derive._
 import sangria.marshalling._
 import sangria.schema._
 import security.AppContext
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 object Mutations extends graphql.Mutations {
   implicit val _order_input = new FromInput[Order] {
@@ -28,8 +30,10 @@ object Mutations extends graphql.Mutations {
       Field("createOrder", IntType,
         arguments = AOrder :: Nil,
         resolve = c => {
+          val user = c.ctx.currentUser.get
           val order = c.arg(AOrder)
-          c.ctx.dao.create(order.copy(orderedBy = c.ctx.currentUser.get.id))
+          c.ctx.dao.create(order.copy(orderedBy = user.id))
+            .map(id => {c.ctx.mailer.sendOrderChange(user, order.copy(id = id)); id})
         },
         tags = ClientTag :: Nil)))
 }
