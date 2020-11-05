@@ -3,7 +3,7 @@ package config
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import models.{IngredientRequest, ProductTransfer, _}
+import models._
 import slick.jdbc.{GetResult, JdbcType}
 import config.PostgresProfile.api._
 import slick.ast.BaseTypedType
